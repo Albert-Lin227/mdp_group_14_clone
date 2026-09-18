@@ -66,7 +66,6 @@
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
             <com.google.android.material.tabs.TabLayout
-
                 android:id="@+id/tabs2"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
@@ -79,8 +78,8 @@
                 app:tabMinWidth="130dp"
                 app:tabMode="scrollable"
                 app:tabRippleColor="@null"
-
-                app:tabSelectedTextColor="@color/colorBlack" />
+                app:tabTextColor="@color/colorWhite"
+                app:tabSelectedTextColor="@color/colorWhite" />
 
         </androidx.viewpager.widget.ViewPager>
 
