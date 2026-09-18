@@ -13,6 +13,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
@@ -57,6 +58,10 @@ public class MainActivity extends AppCompatActivity {
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
+
+        // The foreground service owns the socket/reconnect loop, not a Fragment.
+        // It restores the last explicitly selected device when the process starts.
+        ContextCompat.startForegroundService(this, new android.content.Intent(this, BluetoothReconnectService.class));
 
         SectionsPagerAdapter sectionsPagerAdapter2 = new SectionsPagerAdapter(getSupportFragmentManager(),
                 FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);

@@ -132,7 +132,7 @@ public class BluetoothSetUp extends Fragment {
                 Log.d(TAG, "onItemClick: Initiating pairing with " + deviceName);
                 mNewBTDevices.get(i).createBond();
 
-                mBluetoothConnection = new BluetoothConnectionService(getContext());
+                mBluetoothConnection = BluetoothConnectionService.getInstance(getContext());
                 mBTDevice = mNewBTDevices.get(i);
             }
         });
@@ -149,7 +149,7 @@ public class BluetoothSetUp extends Fragment {
                 Log.d(TAG, "onItemClick: DEVICE NAME: " + deviceName);
                 Log.d(TAG, "onItemClick: DEVICE ADDRESS: " + deviceAddress);
 
-                mBluetoothConnection = new BluetoothConnectionService(getContext());
+                mBluetoothConnection = BluetoothConnectionService.getInstance(getContext());
                 mBTDevice = mPairedBTDevices.get(i);
             }
         });
@@ -286,28 +286,27 @@ public class BluetoothSetUp extends Fragment {
 //        }
 //    }
 
-                             private void checkBTPermissions(){
-        int permission1 = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        int permission2 = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.BLUETOOTH_SCAN);
-        if (permission1 != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
-            ActivityCompat.requestPermissions(
-                    getActivity(),
-                    PERMISSIONS_STORAGE,
-                    1
-            );
-        } else if (permission2 != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(
-                    getActivity(),
-                    PERMISSIONS_LOCATION,
-                    1
-            );
+    private boolean checkBTPermissions(){
+        if (getActivity() == null) return false;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            boolean scanGranted = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED;
+            boolean connectGranted = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
+            if (!scanGranted || !connectGranted) {
+                ActivityCompat.requestPermissions(getActivity(), new String[]{
+                        Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT}, 1);
+                return false;
+            }
+        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M
+                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            return false;
         }
+        return true;
     }
 
     public void Scanning() {
         Log.d(TAG, "toggleButton: Scanning for unpaired devices.");
-        checkBTPermissions();
+        if (!checkBTPermissions()) return;
         mNewBTDevices.clear();
         if (mBluetoothAdapter != null) {
             if (!mBluetoothAdapter.isEnabled()) {
@@ -482,7 +481,22 @@ public class BluetoothSetUp extends Fragment {
 
     public void startBTConnection(BluetoothDevice device, UUID uuid){
         Log.d(TAG, "startBTConnection: Initializing RFCOM Bluetooth Connection");
+        if (!checkBTPermissions()) return;
+        if (mBluetoothConnection == null) {
+            mBluetoothConnection = BluetoothConnectionService.getInstance(getContext());
+        }
         mBluetoothConnection.startClientThread(device, uuid);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1 && checkBTPermissions() && getActivity() != null) {
+            // A service start here retries the saved device after Android has
+            // granted BLUETOOTH_CONNECT; this also handles app relaunches.
+            androidx.core.content.ContextCompat.startForegroundService(getActivity(),
+                    new Intent(getActivity(), BluetoothReconnectService.class));
+        }
     }
 
 

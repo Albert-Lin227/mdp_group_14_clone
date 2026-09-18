@@ -114,7 +114,6 @@ public class Home extends Fragment {
         sharedPreferences();
         editor.putString("message", "");
         editor.putString("direction","None");
-        editor.putString("connStatus", "Disconnected");
         editor.commit();
 
         // Toolbar
@@ -130,6 +129,12 @@ public class Home extends Fragment {
         // Bluetooth Status
         bluetoothStatus = root.findViewById(R.id.bluetoothStatus);
         bluetoothDevice = root.findViewById(R.id.bluetoothConnectedDevice);
+        if (BluetoothConnectionService.BluetoothConnectionStatus) {
+            bluetoothStatus.setText("Connected");
+            bluetoothStatus.setTextColor(android.graphics.Color.GREEN);
+            String connectedName = BluetoothConnectionService.getConnectedDeviceName();
+            if (connectedName != null) bluetoothDevice.setText(connectedName);
+        }
 
         // Map
         gridMap = new GridMap(getContext());
