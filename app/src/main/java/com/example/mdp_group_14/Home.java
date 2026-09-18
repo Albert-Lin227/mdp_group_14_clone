@@ -331,6 +331,7 @@ public class Home extends Fragment {
                         + mDevice.getName());
 
                 editor.putString("connStatus", "Disconnected");
+                editor.commit();
 
                 myDialog.show();
             }

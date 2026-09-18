@@ -8,6 +8,8 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -25,22 +27,40 @@ public class BluetoothConnectionService {
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     private final BluetoothAdapter mBluetoothAdapter;
-    Context mContext;
+    private final Context mContext;
 
     private AcceptThread mInsecureAcceptThread;
 
     private ConnectThread mConnectThread;
-    private BluetoothDevice mmDevice;
-    private UUID deviceUUID;
+    private static BluetoothDevice mmDevice;
+    private static UUID deviceUUID;
     ProgressDialog mProgressDialog;
     Intent connectionStatus;
-//
+
     public static boolean BluetoothConnectionStatus=false;
     private static ConnectedThread mConnectedThread;
 
+    private static final Handler reconnectionHandler = new Handler(Looper.getMainLooper());
+    private static boolean isAutoReconnecting = false;
+
+    private static final Runnable reconnectionRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (!BluetoothConnectionStatus && mmDevice != null && deviceUUID != null) {
+                Log.d(TAG, "Reconnecting to " + mmDevice.getName());
+                if (instance != null) {
+                    instance.startClientThreadInternal(mmDevice, deviceUUID, false);
+                }
+            }
+        }
+    };
+
+    private static BluetoothConnectionService instance;
+
     public BluetoothConnectionService(Context context) {
         this.mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        this.mContext = context;
+        this.mContext = context.getApplicationContext();
+        instance = this;
         startAcceptThread();
     }
 
@@ -111,6 +131,8 @@ public class BluetoothConnectionService {
                 mmSocket.connect();
 
                 Log.d(TAG, "RUN: ConnectThread connected.");
+                isAutoReconnecting = false;
+                reconnectionHandler.removeCallbacks(reconnectionRunnable);
 
                 connected(mmSocket, mmDevice);
 
@@ -122,27 +144,18 @@ public class BluetoothConnectionService {
                     Log.e(TAG, "RUN: ConnectThread: Unable to close connection in socket." + e1.getMessage());
                 }
                 Log.d(TAG, "RUN: ConnectThread: could not connect to UUID." + MY_UUID);
-                try {
 
-
-
-//                        BluetoothSetUp mBluetoothPopUpActivity = new Intent("");
-//                        mBluetoothPopUpActivity.runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                Toast.makeText(mContext, "Failed to connect to the Device.", Toast.LENGTH_LONG).show();
-//                            }
-//                        });
-
-                } catch (Exception z) {
-                    z.printStackTrace();
-                    Log.e(TAG,"error here");
+                if (isAutoReconnecting) {
+                    Log.d(TAG, "ConnectThread: Auto-reconnect failed, retrying in 5s...");
+                    reconnectionHandler.postDelayed(reconnectionRunnable, 5000);
                 }
 
             }
             try {
-                mProgressDialog.dismiss();
-            } catch (NullPointerException e) {
+                if (mProgressDialog != null && mProgressDialog.isShowing()) {
+                    mProgressDialog.dismiss();
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -174,11 +187,20 @@ public class BluetoothConnectionService {
     }
 
     public void startClientThread(BluetoothDevice device, UUID uuid){
-        Log.d(TAG, "startClient: Started.");
-        try {
-            mProgressDialog = ProgressDialog.show(mContext, "Connecting Bluetooth", "Please Wait...", true);
-        } catch (Exception e) {
-            Log.d(TAG, "StartClientThread Dialog show failure");
+        startClientThreadInternal(device, uuid, true);
+    }
+
+    private void startClientThreadInternal(BluetoothDevice device, UUID uuid, boolean showDialog) {
+        Log.d(TAG, "startClient: Started. showDialog=" + showDialog);
+        mmDevice = device;
+        deviceUUID = uuid;
+
+        if (showDialog) {
+            try {
+                mProgressDialog = ProgressDialog.show(mContext, "Connecting Bluetooth", "Please Wait...", true);
+            } catch (Exception e) {
+                Log.d(TAG, "StartClientThread Dialog show failure");
+            }
         }
         mConnectThread = new ConnectThread(device, uuid);
         mConnectThread.start();
@@ -203,11 +225,15 @@ public class BluetoothConnectionService {
             BluetoothConnectionStatus = true;
 
             TextView status = Home.getBluetoothStatus();
-            status.setText("Connected");
-            status.setTextColor(Color.GREEN);
+            if (status != null) {
+                status.setText("Connected");
+                status.setTextColor(Color.GREEN);
+            }
 
-            TextView device = Home.getConnectedDevice();
-            device.setText(mmDevice.getName());
+            TextView deviceView = Home.getConnectedDevice();
+            if (deviceView != null && mmDevice != null) {
+                deviceView.setText(mmDevice.getName());
+            }
 
             try {
                 tmpIn = mSocket.getInputStream();
@@ -237,14 +263,27 @@ public class BluetoothConnectionService {
                 } catch (IOException e) {
                     Log.e(TAG, "Error reading input stream. " + e.getMessage());
 
+                    BluetoothConnectionStatus = false;
                     connectionStatus = new Intent("ConnectionStatus");
                     connectionStatus.putExtra("Status", "disconnected");
-                    TextView status = Home.getBluetoothStatus();
-                    status.setText("Disconnected");
-                    status.setTextColor(Color.RED);
                     connectionStatus.putExtra("Device", mmDevice);
                     LocalBroadcastManager.getInstance(mContext).sendBroadcast(connectionStatus);
-                    BluetoothConnectionStatus = false;
+
+                    reconnectionHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            TextView status = Home.getBluetoothStatus();
+                            if (status != null) {
+                                status.setText("Disconnected");
+                                status.setTextColor(Color.RED);
+                            }
+                        }
+                    });
+
+                    // Trigger auto-reconnect
+                    isAutoReconnecting = true;
+                    reconnectionHandler.removeCallbacks(reconnectionRunnable);
+                    reconnectionHandler.postDelayed(reconnectionRunnable, 5000);
 
                     break;
                 }

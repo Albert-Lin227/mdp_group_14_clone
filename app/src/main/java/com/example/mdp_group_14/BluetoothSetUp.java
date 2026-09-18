@@ -11,9 +11,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -79,35 +77,6 @@ public class BluetoothSetUp extends Fragment {
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     public static BluetoothDevice mBTDevice;
 
-    boolean retryConnection = false;
-    Handler reconnectionHandler = new Handler();
-    Context mContext;
-//    public BluetoothSetUp(Context context) {
-//
-//        this.mContext = context;
-//
-//    }
-    Runnable reconnectionRunnable = new Runnable() {
-        @Override
-        public void run() {
-            // Magic here
-            try {
-                if (BluetoothConnectionService.BluetoothConnectionStatus == false) {
-                    showLog("Reconnecting...");
-                    startBTConnection(mBTDevice, MY_UUID);
-                    updateStatus("Reconnection Success");
-
-                }
-                reconnectionHandler.removeCallbacks(reconnectionRunnable);
-                retryConnection = false;
-            } catch (Exception e) {
-                showLog("Reconnection failed");
-                e.printStackTrace();
-                updateStatus("Failed to reconnect, trying in 5 second");
-            }
-        }
-    };
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -160,13 +129,11 @@ public class BluetoothSetUp extends Fragment {
                 Log.d(TAG, "onItemClick: DEVICE NAME: " + deviceName);
                 Log.d(TAG, "onItemClick: DEVICE ADDRESS: " + deviceAddress);
 
-                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                    Log.d(TAG, "onItemClick: Initiating pairing with " + deviceName);
-                    mNewBTDevices.get(i).createBond();
+                Log.d(TAG, "onItemClick: Initiating pairing with " + deviceName);
+                mNewBTDevices.get(i).createBond();
 
-                    mBluetoothConnection = new BluetoothConnectionService(getContext());
-                    mBTDevice = mNewBTDevices.get(i);
-                }
+                mBluetoothConnection = new BluetoothConnectionService(getContext());
+                mBTDevice = mNewBTDevices.get(i);
             }
         });
 
@@ -272,10 +239,9 @@ public class BluetoothSetUp extends Fragment {
                 editor = sharedPreferences.edit();
                 editor.putString("connStatus", connStatusTextView.getText().toString());
                 editor.commit();
-                TextView status = Home.getBluetoothStatus();
-                String s = connStatusTextView.getText().toString();
-                //status.setText(s);
-                getActivity().finish();
+                if (getActivity() != null) {
+                    getActivity().finish();
+                }
             }
         });
 
@@ -489,29 +455,22 @@ public class BluetoothSetUp extends Fragment {
                 connStatusTextView.setText("Connected to " + mDevice.getName());
 
             }
-            else if(status.equals("disconnected") && retryConnection == false){
+            else if(status.equals("disconnected")){
                 Log.d(TAG, "mBroadcastReceiver5: Disconnected from "+mDevice.getName());
                 updateStatus("Disconnected from "+mDevice.getName());
-                mBluetoothConnection = new BluetoothConnectionService(getContext());
-                //mBluetoothConnection.startAcceptThread();
-
 
                 sharedPreferences = getActivity().getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
                 editor = sharedPreferences.edit();
                 editor.putString("connStatus", "Disconnected");
 
                connStatusTextView.setText("Disconnected");
-
-                editor.commit();
+               editor.commit();
 
                 try {
                     myDialog.show();
                 }catch (Exception e){
                     Log.d(TAG, "BluetoothPopUp: mBroadcastReceiver5 Dialog show failure");
                 }
-                retryConnection = true;
-                reconnectionHandler.postDelayed(reconnectionRunnable, 5000);
-
             }
             editor.commit();
         }
@@ -564,9 +523,7 @@ public class BluetoothSetUp extends Fragment {
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mBroadcastReceiver5, filter5);
     }
 
-    private void showLog(String message) {
-        Log.d(TAG, message);
-    }
+
     private void updateStatus(String message) {
         Toast toast = Toast.makeText(getContext(), message, Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.TOP,0, 0);
