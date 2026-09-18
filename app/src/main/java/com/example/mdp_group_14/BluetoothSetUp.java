@@ -138,7 +138,6 @@ public class BluetoothSetUp extends Fragment {
         int width = dm.widthPixels;
         int height = dm.heightPixels;
 
-        // Get bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         Switch bluetoothSwitch = root.findViewById(R.id.bluetoothSwitch);
@@ -146,12 +145,6 @@ public class BluetoothSetUp extends Fragment {
             bluetoothSwitch.setChecked(true);
             bluetoothSwitch.setText("ON");
         }
-
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        getActivity().registerReceiver(mBroadcastReceiver4, filter);
-
-        IntentFilter filter2 = new IntentFilter("ConnectionStatus");
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mBroadcastReceiver5, filter2);
 
 //        checkBTPermissions(); // might help with the 1st time crashing when clicking 'Scan'
 
@@ -260,6 +253,12 @@ public class BluetoothSetUp extends Fragment {
         Button backBtn = root.findViewById(R.id.backBtn);
 
         connStatusTextView = root.findViewById(R.id.connStatusTextView);
+        connStatusTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleButtonScan(v);
+            }
+        });
         connStatus ="Disconnected";
         sharedPreferences = getActivity().getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
         if (sharedPreferences.contains("connStatus"))
@@ -351,19 +350,11 @@ public class BluetoothSetUp extends Fragment {
             //If discovering, cancel discovery and start again
             if (mBluetoothAdapter.isDiscovering()) {
                 mBluetoothAdapter.cancelDiscovery();
-//                checkBTPermissions();
-
                 mBluetoothAdapter.startDiscovery();
-                IntentFilter discoverDevicesIntent = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-                getActivity().registerReceiver(mBroadcastReceiver3, discoverDevicesIntent);
             }
             // If not discovering, start discovery
             else if (!mBluetoothAdapter.isDiscovering()) {
-//                checkBTPermissions();
-
                 mBluetoothAdapter.startDiscovery();
-                IntentFilter discoverDevicesIntent = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-                getActivity().registerReceiver(mBroadcastReceiver3, discoverDevicesIntent);
             }
             mPairedBTDevices.clear();
             Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
@@ -540,9 +531,15 @@ public class BluetoothSetUp extends Fragment {
     public void onDestroy() {
         Log.d(TAG, "onDestroy: called");
         super.onDestroy();
+    }
+
+    @Override
+    public void onPause() {
+        Log.d(TAG, "onPause: called");
+        super.onPause();
         try {
             getActivity().unregisterReceiver(mBroadcastReceiver1);
-            getActivity().unregisterReceiver(mBroadcastReceiver2);
+            // getActivity().unregisterReceiver(mBroadcastReceiver2); // Receiver 2 is scan mode changed, not used in this app it seems
             getActivity().unregisterReceiver(mBroadcastReceiver3);
             getActivity().unregisterReceiver(mBroadcastReceiver4);
             LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mBroadcastReceiver5);
@@ -552,18 +549,19 @@ public class BluetoothSetUp extends Fragment {
     }
 
     @Override
-    public void onPause() {
-        Log.d(TAG, "onPause: called");
-        super.onPause();
-        try {
-            getActivity().unregisterReceiver(mBroadcastReceiver1);
-            getActivity().unregisterReceiver(mBroadcastReceiver2);
-            getActivity().unregisterReceiver(mBroadcastReceiver3);
-            getActivity().unregisterReceiver(mBroadcastReceiver4);
-            LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mBroadcastReceiver5);
-        } catch(IllegalArgumentException e){
-            e.printStackTrace();
-        }
+    public void onResume() {
+        super.onResume();
+        IntentFilter filter1 = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        getActivity().registerReceiver(mBroadcastReceiver1, filter1);
+
+        IntentFilter filter3 = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        getActivity().registerReceiver(mBroadcastReceiver3, filter3);
+
+        IntentFilter filter4 = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        getActivity().registerReceiver(mBroadcastReceiver4, filter4);
+
+        IntentFilter filter5 = new IntentFilter("ConnectionStatus");
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mBroadcastReceiver5, filter5);
     }
 
     private void showLog(String message) {

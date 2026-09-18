@@ -24,7 +24,6 @@
         android:layout_marginEnd="24dp"
         android:foregroundGravity="center"
         android:gravity="center"
-        android:onClick="toggleButtonScan"
         android:text="Disconnected"
         android:textAllCaps="true"
         android:textColor="@color/design_default_color_error"

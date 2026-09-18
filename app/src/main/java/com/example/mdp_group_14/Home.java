@@ -122,8 +122,8 @@ public class Home extends Fragment {
         bluetoothButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent popup = new Intent(getContext(), BluetoothSetUp.class);
-                startActivity(popup);
+                ViewPager viewPager = getActivity().findViewById(R.id.view_pager2);
+                viewPager.setCurrentItem(1);
             }
         });
 
