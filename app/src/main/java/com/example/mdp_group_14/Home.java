@@ -114,6 +114,10 @@ public class Home extends Fragment {
         sharedPreferences();
         editor.putString("message", "");
         editor.putString("direction","None");
+<<<<<<< HEAD
+=======
+        editor.putString("connStatus", "Disconnected");
+>>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         editor.commit();
 
         // Toolbar
@@ -121,20 +125,28 @@ public class Home extends Fragment {
         bluetoothButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+<<<<<<< HEAD
                 ViewPager viewPager = getActivity().findViewById(R.id.view_pager2);
                 viewPager.setCurrentItem(1);
+=======
+                Intent popup = new Intent(getContext(), BluetoothSetUp.class);
+                startActivity(popup);
+>>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
             }
         });
 
         // Bluetooth Status
         bluetoothStatus = root.findViewById(R.id.bluetoothStatus);
         bluetoothDevice = root.findViewById(R.id.bluetoothConnectedDevice);
+<<<<<<< HEAD
         if (BluetoothConnectionService.BluetoothConnectionStatus) {
             bluetoothStatus.setText("Connected");
             bluetoothStatus.setTextColor(android.graphics.Color.GREEN);
             String connectedName = BluetoothConnectionService.getConnectedDeviceName();
             if (connectedName != null) bluetoothDevice.setText(connectedName);
         }
+=======
+>>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
 
         // Map
         gridMap = new GridMap(getContext());
@@ -336,7 +348,10 @@ public class Home extends Fragment {
                         + mDevice.getName());
 
                 editor.putString("connStatus", "Disconnected");
+<<<<<<< HEAD
                 editor.commit();
+=======
+>>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
 
                 myDialog.show();
             }
@@ -525,4 +540,8 @@ public class Home extends Fragment {
         toast.setGravity(Gravity.TOP,0, 0);
         toast.show();
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)

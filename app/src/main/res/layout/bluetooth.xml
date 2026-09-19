@@ -24,6 +24,10 @@
         android:layout_marginEnd="24dp"
         android:foregroundGravity="center"
         android:gravity="center"
+<<<<<<< HEAD
+=======
+        android:onClick="toggleButtonScan"
+>>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         android:text="Disconnected"
         android:textAllCaps="true"
         android:textColor="@color/design_default_color_error"
@@ -40,7 +44,11 @@
 
         android:layout_marginTop="24dp"
         android:text="Bluetooth"
+<<<<<<< HEAD
         android:textColor="@color/white"
+=======
+        android:textColor="@color/black"
+>>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         android:textSize="30sp"
         app:layout_constraintStart_toEndOf="@+id/backBtn"
         app:layout_constraintTop_toTopOf="parent" />
@@ -52,7 +60,11 @@
         android:layout_marginTop="25dp"
         android:buttonTint="#404252"
         android:text="On"
+<<<<<<< HEAD
         android:textColor="@color/white"
+=======
+        android:textColor="@color/black"
+>>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         android:textSize="14sp"
         android:thumbTint="#404252"
         app:layout_constraintTop_toTopOf="parent"
@@ -80,7 +92,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="80dp"
         android:text="Paired Devices"
+<<<<<<< HEAD
         android:textColor="@color/white"
+=======
+        android:textColor="@color/black"
+>>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         android:textSize="18dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -108,7 +124,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Devices Found"
+<<<<<<< HEAD
         android:textColor="@color/white"
+=======
+        android:textColor="@color/black"
+>>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

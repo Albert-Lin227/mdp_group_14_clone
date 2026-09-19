@@ -66,6 +66,10 @@
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
             <com.google.android.material.tabs.TabLayout
+<<<<<<< HEAD
+=======
+
+>>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
                 android:id="@+id/tabs2"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
@@ -78,8 +82,13 @@
                 app:tabMinWidth="130dp"
                 app:tabMode="scrollable"
                 app:tabRippleColor="@null"
+<<<<<<< HEAD
                 app:tabTextColor="@color/colorWhite"
                 app:tabSelectedTextColor="@color/colorWhite" />
+=======
+
+                app:tabSelectedTextColor="@color/colorBlack" />
+>>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
 
         </androidx.viewpager.widget.ViewPager>
 

@@ -15,3 +15,8 @@
 
 - Pitwall App & Remote Telemetry Commanders (Android Developer) — Building the sleek mobile dashboards and live device controllers so we can frantically monitor sensor data and tap emergency stop buttons from a safe distance.
 - Media & Post-Race Cinematic Directors (Video Editor) — Stitching together epic cinematic highlights, epic crash compilations, and slow-motion replays so everyone looks like a cinematic masterpiece, even when the robot drives straight into a wall at 2 FPS.
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
