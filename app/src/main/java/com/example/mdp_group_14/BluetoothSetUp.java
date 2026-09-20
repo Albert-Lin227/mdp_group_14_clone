@@ -11,13 +11,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-<<<<<<< HEAD
-import android.os.Bundle;
-=======
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -40,11 +36,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
-<<<<<<< HEAD
 
-=======
-//original code
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
 
 public class BluetoothSetUp extends Fragment {
 
@@ -87,8 +79,6 @@ public class BluetoothSetUp extends Fragment {
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     public static BluetoothDevice mBTDevice;
 
-<<<<<<< HEAD
-=======
     boolean retryConnection = false;
     Handler reconnectionHandler = new Handler();
     Context mContext;
@@ -118,7 +108,6 @@ public class BluetoothSetUp extends Fragment {
         }
     };
 
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -149,10 +138,7 @@ public class BluetoothSetUp extends Fragment {
         int width = dm.widthPixels;
         int height = dm.heightPixels;
 
-<<<<<<< HEAD
-=======
         // Get bluetooth adapter
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         Switch bluetoothSwitch = root.findViewById(R.id.bluetoothSwitch);
@@ -161,15 +147,12 @@ public class BluetoothSetUp extends Fragment {
             bluetoothSwitch.setText("ON");
         }
 
-<<<<<<< HEAD
-=======
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         getActivity().registerReceiver(mBroadcastReceiver4, filter);
 
         IntentFilter filter2 = new IntentFilter("ConnectionStatus");
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mBroadcastReceiver5, filter2);
 
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
 //        checkBTPermissions(); // might help with the 1st time crashing when clicking 'Scan'
 
         lvNewDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -184,13 +167,6 @@ public class BluetoothSetUp extends Fragment {
                 Log.d(TAG, "onItemClick: DEVICE NAME: " + deviceName);
                 Log.d(TAG, "onItemClick: DEVICE ADDRESS: " + deviceAddress);
 
-<<<<<<< HEAD
-                Log.d(TAG, "onItemClick: Initiating pairing with " + deviceName);
-                mNewBTDevices.get(i).createBond();
-
-                mBluetoothConnection = BluetoothConnectionService.getInstance(getContext());
-                mBTDevice = mNewBTDevices.get(i);
-=======
                 if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR2) {
                     Log.d(TAG, "onItemClick: Initiating pairing with " + deviceName);
                     mNewBTDevices.get(i).createBond();
@@ -198,7 +174,6 @@ public class BluetoothSetUp extends Fragment {
                     mBluetoothConnection = new BluetoothConnectionService(getContext());
                     mBTDevice = mNewBTDevices.get(i);
                 }
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
             }
         });
 
@@ -214,11 +189,7 @@ public class BluetoothSetUp extends Fragment {
                 Log.d(TAG, "onItemClick: DEVICE NAME: " + deviceName);
                 Log.d(TAG, "onItemClick: DEVICE ADDRESS: " + deviceAddress);
 
-<<<<<<< HEAD
-                mBluetoothConnection = BluetoothConnectionService.getInstance(getContext());
-=======
                 mBluetoothConnection = new BluetoothConnectionService(getContext());
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
                 mBTDevice = mPairedBTDevices.get(i);
             }
         });
@@ -289,15 +260,6 @@ public class BluetoothSetUp extends Fragment {
         Button backBtn = root.findViewById(R.id.backBtn);
 
         connStatusTextView = root.findViewById(R.id.connStatusTextView);
-<<<<<<< HEAD
-        connStatusTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleButtonScan(v);
-            }
-        });
-=======
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         connStatus ="Disconnected";
         sharedPreferences = getActivity().getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
         if (sharedPreferences.contains("connStatus"))
@@ -311,16 +273,10 @@ public class BluetoothSetUp extends Fragment {
                 editor = sharedPreferences.edit();
                 editor.putString("connStatus", connStatusTextView.getText().toString());
                 editor.commit();
-<<<<<<< HEAD
-                if (getActivity() != null) {
-                    getActivity().finish();
-                }
-=======
                 TextView status = Home.getBluetoothStatus();
                 String s = connStatusTextView.getText().toString();
                 //status.setText(s);
                 getActivity().finish();
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
             }
         });
 
@@ -365,24 +321,6 @@ public class BluetoothSetUp extends Fragment {
 //        }
 //    }
 
-<<<<<<< HEAD
-    private boolean checkBTPermissions(){
-        if (getActivity() == null) return false;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            boolean scanGranted = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED;
-            boolean connectGranted = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
-            if (!scanGranted || !connectGranted) {
-                ActivityCompat.requestPermissions(getActivity(), new String[]{
-                        Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT}, 1);
-                return false;
-            }
-        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M
-                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-            return false;
-        }
-        return true;
-=======
                              private void checkBTPermissions(){
         int permission1 = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
         int permission2 = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.BLUETOOTH_SCAN);
@@ -400,16 +338,11 @@ public class BluetoothSetUp extends Fragment {
                     1
             );
         }
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
     }
 
     public void Scanning() {
         Log.d(TAG, "toggleButton: Scanning for unpaired devices.");
-<<<<<<< HEAD
-        if (!checkBTPermissions()) return;
-=======
         checkBTPermissions();
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         mNewBTDevices.clear();
         if (mBluetoothAdapter != null) {
             if (!mBluetoothAdapter.isEnabled()) {
@@ -418,13 +351,6 @@ public class BluetoothSetUp extends Fragment {
             //If discovering, cancel discovery and start again
             if (mBluetoothAdapter.isDiscovering()) {
                 mBluetoothAdapter.cancelDiscovery();
-<<<<<<< HEAD
-                mBluetoothAdapter.startDiscovery();
-            }
-            // If not discovering, start discovery
-            else if (!mBluetoothAdapter.isDiscovering()) {
-                mBluetoothAdapter.startDiscovery();
-=======
 //                checkBTPermissions();
 
                 mBluetoothAdapter.startDiscovery();
@@ -438,7 +364,6 @@ public class BluetoothSetUp extends Fragment {
                 mBluetoothAdapter.startDiscovery();
                 IntentFilter discoverDevicesIntent = new IntentFilter(BluetoothDevice.ACTION_FOUND);
                 getActivity().registerReceiver(mBroadcastReceiver3, discoverDevicesIntent);
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
             }
             mPairedBTDevices.clear();
             Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
@@ -573,42 +498,29 @@ public class BluetoothSetUp extends Fragment {
                 connStatusTextView.setText("Connected to " + mDevice.getName());
 
             }
-<<<<<<< HEAD
-            else if(status.equals("disconnected")){
-                Log.d(TAG, "mBroadcastReceiver5: Disconnected from "+mDevice.getName());
-                updateStatus("Disconnected from "+mDevice.getName());
-=======
             else if(status.equals("disconnected") && retryConnection == false){
                 Log.d(TAG, "mBroadcastReceiver5: Disconnected from "+mDevice.getName());
                 updateStatus("Disconnected from "+mDevice.getName());
                 mBluetoothConnection = new BluetoothConnectionService(getContext());
                 //mBluetoothConnection.startAcceptThread();
 
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
 
                 sharedPreferences = getActivity().getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
                 editor = sharedPreferences.edit();
                 editor.putString("connStatus", "Disconnected");
 
                connStatusTextView.setText("Disconnected");
-<<<<<<< HEAD
-               editor.commit();
-=======
 
                 editor.commit();
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
 
                 try {
                     myDialog.show();
                 }catch (Exception e){
                     Log.d(TAG, "BluetoothPopUp: mBroadcastReceiver5 Dialog show failure");
                 }
-<<<<<<< HEAD
-=======
                 retryConnection = true;
                 reconnectionHandler.postDelayed(reconnectionRunnable, 5000);
 
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
             }
             editor.commit();
         }
@@ -620,50 +532,17 @@ public class BluetoothSetUp extends Fragment {
 
     public void startBTConnection(BluetoothDevice device, UUID uuid){
         Log.d(TAG, "startBTConnection: Initializing RFCOM Bluetooth Connection");
-<<<<<<< HEAD
-        if (!checkBTPermissions()) return;
-        if (mBluetoothConnection == null) {
-            mBluetoothConnection = BluetoothConnectionService.getInstance(getContext());
-        }
         mBluetoothConnection.startClientThread(device, uuid);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 1 && checkBTPermissions() && getActivity() != null) {
-            // A service start here retries the saved device after Android has
-            // granted BLUETOOTH_CONNECT; this also handles app relaunches.
-            androidx.core.content.ContextCompat.startForegroundService(getActivity(),
-                    new Intent(getActivity(), BluetoothReconnectService.class));
-        }
-    }
-
-=======
-        mBluetoothConnection.startClientThread(device, uuid);
-    }
-
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
 
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy: called");
         super.onDestroy();
-<<<<<<< HEAD
-    }
-
-    @Override
-    public void onPause() {
-        Log.d(TAG, "onPause: called");
-        super.onPause();
-        try {
-            getActivity().unregisterReceiver(mBroadcastReceiver1);
-            // getActivity().unregisterReceiver(mBroadcastReceiver2); // Receiver 2 is scan mode changed, not used in this app it seems
-=======
         try {
             getActivity().unregisterReceiver(mBroadcastReceiver1);
             getActivity().unregisterReceiver(mBroadcastReceiver2);
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
             getActivity().unregisterReceiver(mBroadcastReceiver3);
             getActivity().unregisterReceiver(mBroadcastReceiver4);
             LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mBroadcastReceiver5);
@@ -673,24 +552,6 @@ public class BluetoothSetUp extends Fragment {
     }
 
     @Override
-<<<<<<< HEAD
-    public void onResume() {
-        super.onResume();
-        IntentFilter filter1 = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        getActivity().registerReceiver(mBroadcastReceiver1, filter1);
-
-        IntentFilter filter3 = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        getActivity().registerReceiver(mBroadcastReceiver3, filter3);
-
-        IntentFilter filter4 = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        getActivity().registerReceiver(mBroadcastReceiver4, filter4);
-
-        IntentFilter filter5 = new IntentFilter("ConnectionStatus");
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mBroadcastReceiver5, filter5);
-    }
-
-
-=======
     public void onPause() {
         Log.d(TAG, "onPause: called");
         super.onPause();
@@ -708,14 +569,9 @@ public class BluetoothSetUp extends Fragment {
     private void showLog(String message) {
         Log.d(TAG, message);
     }
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
     private void updateStatus(String message) {
         Toast toast = Toast.makeText(getContext(), message, Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.TOP,0, 0);
         toast.show();
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)

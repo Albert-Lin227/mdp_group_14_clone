@@ -14,11 +14,7 @@
         android:layout_marginTop="20dp"
         android:gravity="center"
         android:text="Manual obstacle input"
-<<<<<<< HEAD
         android:textColor="@color/white"
-=======
-        android:textColor="@color/black"
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         android:textSize="36sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -33,11 +29,7 @@
         android:layout_marginTop="40dp"
         android:gravity="center"
         android:text="X: "
-<<<<<<< HEAD
         android:textColor="@color/white"
-=======
-        android:textColor="@color/black"
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -48,11 +40,6 @@
         android:layout_width="100dp"
         android:layout_height="50dp"
         android:layout_marginTop="40dp"
-<<<<<<< HEAD
-        android:theme="@style/ThemeOverlay.AppCompat.Dark"
-        android:background="@color/white"
-=======
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         app:layout_constraintStart_toEndOf="@+id/xTextView"
         app:layout_constraintTop_toBottomOf="@+id/manualFragmentTitleTextView" />
 
@@ -64,11 +51,7 @@
         android:layout_marginTop="40dp"
         android:gravity="center"
         android:text="Y: "
-<<<<<<< HEAD
         android:textColor="@color/white"
-=======
-        android:textColor="@color/black"
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintStart_toEndOf="@id/xDropdownSpinner"
@@ -79,11 +62,6 @@
         android:layout_width="100dp"
         android:layout_height="50dp"
         android:layout_marginTop="40dp"
-<<<<<<< HEAD
-        android:theme="@style/ThemeOverlay.AppCompat.Dark"
-        android:background="@color/white"
-=======
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         app:layout_constraintStart_toEndOf="@+id/yTextView"
         app:layout_constraintTop_toBottomOf="@+id/manualFragmentTitleTextView" />
 
@@ -95,11 +73,7 @@
         android:layout_marginTop="40dp"
         android:gravity="center"
         android:text="Direction: "
-<<<<<<< HEAD
         android:textColor="@color/white"
-=======
-        android:textColor="@color/black"
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -112,11 +86,6 @@
         android:layout_marginTop="40dp"
         android:layout_marginRight="110dp"
         android:minWidth="100dp"
-<<<<<<< HEAD
-        android:theme="@style/ThemeOverlay.AppCompat.Dark"
-        android:background="@color/white"
-=======
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.16"
         app:layout_constraintStart_toEndOf="@+id/directionTextView"
@@ -163,10 +132,6 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="30dp"
         android:text="Obstacle"
-<<<<<<< HEAD
-        android:textColor="@color/white"
-=======
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         app:layout_constraintBottom_toBottomOf="@+id/directionDropdownSpinner"
         app:layout_constraintStart_toEndOf="@+id/directionDropdownSpinner"
         app:layout_constraintTop_toTopOf="@+id/directionDropdownSpinner" />

@@ -26,7 +26,7 @@
                     android:layout_marginTop="10dp"
                     android:gravity="center"
                     android:text="TASK 1"
-                    android:textColor="@color/black"
+                    android:textColor="@color/white"
                     android:textSize="20sp" />
                 <!--                app:drawableStartCompat="@mipmap/left"
                     app:drawableEndCompat="@mipmap/right"-->
@@ -38,7 +38,7 @@
                     android:background="@color/white"
                     android:gravity="center"
                     android:text="00:00"
-                    android:textColor="@color/black"
+                    android:textColor="@color/white"
                     android:textSize="26sp" />
 
                 <ToggleButton
@@ -85,7 +85,7 @@
                     android:layout_marginTop="10dp"
                     android:gravity="center"
                     android:text="TASK 2"
-                    android:textColor="@color/black"
+                    android:textColor="@color/white"
                     android:textSize="20sp" />
                 <!--                android:background="@drawable/statusbar"-->
                 <!--                app:drawableLeftCompat="@mipmap/left"
@@ -96,7 +96,7 @@
                     android:layout_height="40dp"
                     android:background="@color/white"
                     android:gravity="center"
-                    android:textColor="@color/black"
+                    android:textColor="@color/white"
                     android:text="00:00"
                     android:textSize="26sp" />
 

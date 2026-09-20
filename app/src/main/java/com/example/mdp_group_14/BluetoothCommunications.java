@@ -21,11 +21,7 @@ import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.nio.charset.StandardCharsets;
-<<<<<<< HEAD
 
-=======
-//this is the original Bluetooth code
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
 public class BluetoothCommunications extends Fragment {
     private static final String TAG = "BluetoothComms";
 

@@ -13,10 +13,6 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-<<<<<<< HEAD
-import androidx.core.content.ContextCompat;
-=======
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
@@ -62,13 +58,6 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
 
-<<<<<<< HEAD
-        // The foreground service owns the socket/reconnect loop, not a Fragment.
-        // It restores the last explicitly selected device when the process starts.
-        ContextCompat.startForegroundService(this, new android.content.Intent(this, BluetoothReconnectService.class));
-
-=======
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)
         SectionsPagerAdapter sectionsPagerAdapter2 = new SectionsPagerAdapter(getSupportFragmentManager(),
                 FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
 //        sectionsPagerAdapter.addFragment(new BluetoothCommunications(),"CHAT");
@@ -91,8 +80,4 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 01d0f92 (Amended code for retry loop around startAcceptThread in BluetoothConnectionService.java file, along with a simple heartbeat/last seen timestamp check, similar to the RPI's link_ok pattern.)

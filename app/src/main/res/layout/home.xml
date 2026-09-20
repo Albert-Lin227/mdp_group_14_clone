@@ -50,7 +50,7 @@
                     android:gravity="center"
                     android:text="BLUETOOTH"
                     android:textAlignment="center"
-                    android:textColor="@color/black"
+                    android:textColor="@color/white"
                     android:textStyle="bold" />
                 <!--        app:drawableLeftCompat="@mipmap/left"
         app:drawableRightCompat="@mipmap/right"-->
@@ -92,7 +92,7 @@
                     android:gravity="center"
                     android:text="ROBOT STATUS"
                     android:textAlignment="center"
-                    android:textColor="@color/black"
+                    android:textColor="@color/white"
                     android:textStyle="bold" />
                 <!--
             app:drawableLeftCompat="@mipmap/left"
@@ -120,7 +120,7 @@
                     android:gravity="center"
                     android:text="DIRECTION"
                     android:textAlignment="center"
-                    android:textColor="@color/black" />
+                    android:textColor="@color/white" />
                 <!--
             app:drawableLeftCompat="@mipmap/left"
             app:drawableRightCompat="@mipmap/right"-->
@@ -147,7 +147,7 @@
                     android:gravity="center"
                     android:text="COORDINATES"
                     android:textAlignment="center"
-                    android:textColor="@color/black" />
+                    android:textColor="@color/white" />
                 <!--        android:drawableLeft="@mipmap/left"
             android:drawableRight="@mipmap/right"-->
 
@@ -168,7 +168,7 @@
                         android:paddingStart="25dp"
                         android:text="X:"
                         android:textAlignment="center"
-                        android:textColor="@color/colorBlack"
+                        android:textColor="@color/colorWhite"
                         android:textSize="16sp" />
 
                     <TextView
@@ -177,7 +177,7 @@
                         android:layout_height="30dp"
                         android:paddingStart="7dp"
                         android:text="0"
-                        android:textColor="@color/colorBlack"
+                        android:textColor="@color/colorWhite"
                         android:textSize="16sp" />
 
                     <TextView
@@ -190,7 +190,7 @@
                         android:paddingStart="20dp"
                         android:text="Y:"
                         android:textAlignment="center"
-                        android:textColor="@color/colorBlack"
+                        android:textColor="@color/colorWhite"
                         android:textSize="16sp" />
 
                     <TextView
@@ -199,7 +199,7 @@
                         android:layout_height="30dp"
                         android:paddingStart="7dp"
                         android:text="0"
-                        android:textColor="@color/colorBlack"
+                        android:textColor="@color/colorWhite"
                         android:textSize="16sp" />
                 </LinearLayout>
             </LinearLayout>
