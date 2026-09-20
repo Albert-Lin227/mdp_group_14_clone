@@ -1,5 +1,6 @@
 package com.example.mdp_group_14;
 
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -14,6 +15,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.widget.TextView;
 
+import androidx.annotation.RequiresPermission;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.IOException;
@@ -51,6 +53,7 @@ public class BluetoothConnectionService {
     private boolean linkHealthPublished = false;
 
     private final Runnable acceptRetryRunnable = new Runnable() {
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         @Override
         public void run() {
             synchronized (BluetoothConnectionService.this) {
@@ -73,6 +76,7 @@ public class BluetoothConnectionService {
         }
     };
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public BluetoothConnectionService(Context context) {
         this.mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         this.mContext = context;
@@ -85,6 +89,7 @@ public class BluetoothConnectionService {
     private class AcceptThread extends Thread {
         private final BluetoothServerSocket ServerSocket;
 
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         public AcceptThread() {
             BluetoothServerSocket tmp = null;
 
@@ -96,6 +101,7 @@ public class BluetoothConnectionService {
             }
             ServerSocket = tmp;
         }
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         public void run(){
             Log.d(TAG, "run: AcceptThread Running. ");
             BluetoothSocket socket =null;
@@ -136,6 +142,7 @@ public class BluetoothConnectionService {
             deviceUUID = uuid;
         }
 
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         public void run() {
             BluetoothSocket tmp = null;
             Log.d(TAG, "RUN: mConnectThread");
@@ -199,6 +206,7 @@ public class BluetoothConnectionService {
         }
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public synchronized void startAcceptThread(){
         Log.d(TAG, "start");
 
@@ -244,6 +252,7 @@ public class BluetoothConnectionService {
         private final InputStream inStream;
         private final OutputStream outStream;
 
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         public ConnectedThread(BluetoothSocket socket) {
             Log.d(TAG, "ConnectedThread: Starting.");
 
@@ -256,8 +265,8 @@ public class BluetoothConnectionService {
             connectionStatus.putExtra("Device", mmDevice);
             LocalBroadcastManager.getInstance(mContext).sendBroadcast(connectionStatus);
             BluetoothConnectionStatus = true;
-            lastSeenElapsedMs = 0L;
-            publishLinkHealth(false);
+            lastSeenElapsedMs = SystemClock.elapsedRealtime();
+            publishLinkHealth(true);
 
             TextView status = Home.getBluetoothStatus();
             status.setText("Connected");
@@ -318,6 +327,8 @@ public class BluetoothConnectionService {
                 }
             }
         }
+
+        /*
         public void write(byte[] bytes){
             String text = new String(bytes, Charset.defaultCharset());
             Log.d(TAG, "write: Writing to output stream: "+text);
@@ -327,7 +338,25 @@ public class BluetoothConnectionService {
                 Log.e(TAG, "Error writing to output stream. "+e.getMessage());
             }
         }
+        */
 
+        //updated write method to ensure every outgoing message ends with a newline character (\n). This is to ensure proper display on foxglove
+        // Inside ConnectedThread in BluetoothConnectionService.java
+
+        public void write(byte[] bytes) {
+            String text = new String(bytes, Charset.defaultCharset());
+            if (!text.endsWith("\n")) {
+                text = text + "\n";
+                bytes = text.getBytes(Charset.defaultCharset());
+            }
+            Log.d(TAG, "write: Writing to output stream: " + text);
+            try {
+                outStream.write(bytes);
+                outStream.flush(); // FORCE IMMEDIATE TRANSMISSION OVER BLUETOOTH
+            } catch (IOException e) {
+                Log.e(TAG, "Error writing to output stream. " + e.getMessage());
+            }
+        }
 
         public void cancel(){
             Log.d(TAG, "cancel: Closing Client Socket");
@@ -339,6 +368,7 @@ public class BluetoothConnectionService {
         }
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private void connected(BluetoothSocket mSocket, BluetoothDevice device) {
         Log.d(TAG, "connected: Starting.");
         mmDevice =  device;

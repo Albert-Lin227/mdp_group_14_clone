@@ -225,6 +225,7 @@ public class ControlFragment extends Fragment {
                     showToast("Task 1 timer stop!");
                     robotStatusTextView.setText("Task 1 Stopped");
                     timerHandler.removeCallbacks(timerRunnableExplore);
+                    Home.printMessage("STOP");
                 }
                 else if (exploreToggleBtn.getText().equals("STOP")) {
                     // Get String value that represents obstacle configuration
@@ -258,6 +259,8 @@ public class ControlFragment extends Fragment {
                 if (fastestToggleBtn.getText().equals("TASK 2 START")) {
                     showToast("Task 2 timer stop!");
                     robotStatusTextView.setText("Task 2 Stopped");
+                    Home.printMessage("STOP");
+
                     timerHandler.removeCallbacks(timerRunnableFastest);
                 }
                 else if (fastestToggleBtn.getText().equals("STOP")) {

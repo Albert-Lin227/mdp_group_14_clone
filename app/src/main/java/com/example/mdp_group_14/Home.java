@@ -1,12 +1,14 @@
 package com.example.mdp_group_14;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
@@ -205,6 +207,7 @@ public class Home extends Fragment {
     }
 
     // Send Coordinates to alg
+    /*
     public static void printCoords(String message){
         showLog("Displaying Coords untranslated and translated");
         showLog(message);
@@ -221,8 +224,35 @@ public class Home extends Fragment {
         refreshMessageReceivedNS("Translated Coordinates: "+strArr[1]);
         showLog("Exiting printCoords");
     }
+        */
+//new printCoords method to ensure every outgoing message ends with a newline character (\n)
+    public static void printCoords(String message) {
+        showLog("Displaying Coords untranslated and translated");
+        showLog(message);
+
+        if (message == null || message.isEmpty()) return;
+
+        String[] strArr = message.split("_", 2);
+        String toSend = (strArr.length > 1) ? strArr[1] : strArr[0];
+
+        if (BluetoothConnectionService.BluetoothConnectionStatus) {
+            if (!toSend.endsWith("\n")) {
+                toSend = toSend + "\n";
+            }
+            byte[] bytes = toSend.getBytes(Charset.defaultCharset());
+            BluetoothConnectionService.write(bytes);
+        }
+
+        refreshMessageReceivedNS("Untranslated Coordinates: " + strArr[0] + "\n");
+        if (strArr.length > 1) {
+            refreshMessageReceivedNS("Translated Coordinates: " + strArr[1]);
+        }
+        showLog("Exiting printCoords");
+    }
 
     // Send message to bluetooth (not shown on chat box)
+
+    /*
     public static void printMessage(String message) {
         showLog("Entering printMessage");
         editor = sharedPreferences.edit();
@@ -234,6 +264,29 @@ public class Home extends Fragment {
         showLog(message);
         showLog("Exiting printMessage");
     }
+        */
+    // Send message to bluetooth (not shown on chat box)
+
+    //new printMessage method to ensure every outgoing message ends with a newline character (\n)
+    public static void printMessage(String message) {
+        showLog("Entering printMessage");
+        if (message == null) return;
+        else if (!message.endsWith("\n")) {
+            message = message + "\n";
+        }
+        showLog("The message is: " + message);
+        if (BluetoothConnectionService.BluetoothConnectionStatus) {
+
+            byte[] bytes = message.getBytes(Charset.defaultCharset());
+            BluetoothConnectionService.write(bytes);
+
+        }
+        showLog("The message sent is: " + message);
+
+        showLog("Exiting printMessage");
+    }
+
+
 
     // Send message to bluetooth (not shown on chat box)
     public static void printMessage(JSONArray message) {
@@ -307,6 +360,7 @@ public class Home extends Fragment {
     }
 
     private final BroadcastReceiver mBroadcastReceiver5 = new BroadcastReceiver() {
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         @Override
         public void onReceive(Context context, Intent intent) {
             BluetoothDevice mDevice = intent.getParcelableExtra("Device");
@@ -342,11 +396,17 @@ public class Home extends Fragment {
     // RPi relays the EXACT SAME stm commands sent by algo back to android: Starts with "Algo|"
     // RPi sends the image id as "TARGET~<obID>~<ImValue>"
     // Other specific strings are to clear checklist
+
+
+
     BroadcastReceiver messageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             PathTranslator pathTranslator = new PathTranslator(gridMap);    // For real-time updating on displayed gridmap
             String message = intent.getStringExtra("receivedMessage");
+            if(message == null) return;
+
+            message = message.trim(); // trim leading/trailing whitespace and newlines for clean parsing
             showLog("receivedMessage: message --- " + message);
 
             String[] cmdd = message.split(",");
