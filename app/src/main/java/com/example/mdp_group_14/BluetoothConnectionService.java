@@ -31,6 +31,10 @@ public class BluetoothConnectionService {
     private static final long ACCEPT_RETRY_MS = 1000L;
     private static final long LINK_TIMEOUT_MS = 3000L;
     private static final long LINK_HEALTH_CHECK_MS = 250L;
+    // Bring-up aid: send one line as soon as the link is up so the Mac terminal shows
+    // "[BT RECEIVED]: HELLO_FROM_TABLET" without touching any button. Set to false once
+    // the link is verified.
+    private static final boolean SEND_HELLO_ON_CONNECT = true;
 
     private final BluetoothAdapter mBluetoothAdapter;
     Context mContext;
@@ -42,7 +46,7 @@ public class BluetoothConnectionService {
     private UUID deviceUUID;
     ProgressDialog mProgressDialog;
     Intent connectionStatus;
-//
+    //
     public static boolean BluetoothConnectionStatus=false;
     // Mirrors the RPi's /bluetooth_bridge/link_ok state. A socket may remain
     // connected while this is false if the peer has stopped sending data.
@@ -268,12 +272,16 @@ public class BluetoothConnectionService {
             lastSeenElapsedMs = SystemClock.elapsedRealtime();
             publishLinkHealth(true);
 
-            TextView status = Home.getBluetoothStatus();
-            status.setText("Connected");
-            status.setTextColor(Color.GREEN);
-
-            TextView device = Home.getConnectedDevice();
-            device.setText(mmDevice.getName());
+            // This constructor runs on the accept/connect worker thread. Touching a TextView
+            // here throws CalledFromWrongThreadException before the streams are set up, so
+            // the reader thread never starts. Hand the UI update to the main thread instead.
+            String deviceName = null;
+            try {
+                deviceName = mmDevice.getName();
+            } catch (SecurityException e) {
+                Log.e(TAG, "Missing BLUETOOTH_CONNECT permission: " + e.getMessage());
+            }
+            updateStatusViews(true, deviceName);
 
             try {
                 tmpIn = mSocket.getInputStream();
@@ -290,8 +298,15 @@ public class BluetoothConnectionService {
             byte[] buffer = new byte[1024];
             int bytes;
 
+            if (SEND_HELLO_ON_CONNECT && outStream != null) {
+                write("HELLO_FROM_TABLET\n".getBytes(Charset.defaultCharset()));
+            }
+
             while (true) {
                 try {
+                    if (inStream == null) {
+                        throw new IOException("Bluetooth input stream unavailable");
+                    }
                     bytes = inStream.read(buffer);
                     if (bytes < 0) {
                         throw new IOException("Bluetooth stream closed");
@@ -311,11 +326,11 @@ public class BluetoothConnectionService {
                 } catch (IOException e) {
                     Log.e(TAG, "Error reading input stream. " + e.getMessage());
 
+                    cancel();   // release the dead socket so the peer sees EOF promptly
+
                     connectionStatus = new Intent("ConnectionStatus");
                     connectionStatus.putExtra("Status", "disconnected");
-                    TextView status = Home.getBluetoothStatus();
-                    status.setText("Disconnected");
-                    status.setTextColor(Color.RED);
+                    updateStatusViews(false, null);
                     connectionStatus.putExtra("Device", mmDevice);
                     LocalBroadcastManager.getInstance(mContext).sendBroadcast(connectionStatus);
                     BluetoothConnectionStatus = false;
@@ -381,6 +396,27 @@ public class BluetoothConnectionService {
         mConnectedThread.start();
     }
 
+    // Safe to call from any thread: the views are only touched on the main looper, and a
+    // missing Home fragment (views not created yet, or already destroyed) is tolerated.
+    private void updateStatusViews(final boolean connected, final String deviceName) {
+        retryHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                TextView status = Home.getBluetoothStatus();
+                if (status != null) {
+                    status.setText(connected ? "Connected" : "Disconnected");
+                    status.setTextColor(connected ? Color.GREEN : Color.RED);
+                }
+                if (connected && deviceName != null) {
+                    TextView device = Home.getConnectedDevice();
+                    if (device != null) {
+                        device.setText(deviceName);
+                    }
+                }
+            }
+        });
+    }
+
     private void scheduleAcceptRetry() {
         retryHandler.removeCallbacks(acceptRetryRunnable);
         retryHandler.postDelayed(acceptRetryRunnable, ACCEPT_RETRY_MS);
@@ -399,9 +435,12 @@ public class BluetoothConnectionService {
     }
 
     public static void write(byte[] out){
-        ConnectedThread tmp;
-
         Log.d(TAG, "write: Write is called." );
-        mConnectedThread.write(out);
+        ConnectedThread thread = mConnectedThread;
+        if (thread == null || !BluetoothConnectionStatus) {
+            Log.w(TAG, "write: no active Bluetooth connection, dropping message");
+            return;
+        }
+        thread.write(out);
     }
 }
