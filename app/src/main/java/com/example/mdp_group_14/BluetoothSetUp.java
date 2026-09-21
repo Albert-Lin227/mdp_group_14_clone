@@ -29,6 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -156,6 +157,7 @@ public class BluetoothSetUp extends Fragment {
 //        checkBTPermissions(); // might help with the 1st time crashing when clicking 'Scan'
 
         lvNewDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @RequiresPermission(allOf = {Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT})
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 mBluetoothAdapter.cancelDiscovery();
@@ -169,15 +171,17 @@ public class BluetoothSetUp extends Fragment {
 
                 if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR2) {
                     Log.d(TAG, "onItemClick: Initiating pairing with " + deviceName);
-                    mNewBTDevices.get(i).createBond();
-
-                    mBluetoothConnection = new BluetoothConnectionService(getContext());
+//                    mNewBTDevices.get(i).createBond();
+                    mBTDevice = mNewBTDevices.get(i);
+                    updateStatus("Pair this device in Android Settings first, then pick it from the paired list");
+                    mBluetoothConnection = BluetoothConnectionService.getInstance(requireContext());
                     mBTDevice = mNewBTDevices.get(i);
                 }
             }
         });
 
         lvPairedDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @RequiresPermission(allOf = {Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT})
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 mBluetoothAdapter.cancelDiscovery();
@@ -189,7 +193,7 @@ public class BluetoothSetUp extends Fragment {
                 Log.d(TAG, "onItemClick: DEVICE NAME: " + deviceName);
                 Log.d(TAG, "onItemClick: DEVICE ADDRESS: " + deviceAddress);
 
-                mBluetoothConnection = new BluetoothConnectionService(getContext());
+                mBluetoothConnection = BluetoothConnectionService.getInstance(requireContext());
                 mBTDevice = mPairedBTDevices.get(i);
             }
         });
@@ -197,6 +201,7 @@ public class BluetoothSetUp extends Fragment {
 
         bluetoothSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener(){
             // Enabling and Disabling of Bluetooth on The Device
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
                 Log.d(TAG, "onChecked: Enabling/Disabling Bluetooth");
@@ -251,6 +256,7 @@ public class BluetoothSetUp extends Fragment {
         });
         //ONCLICKLISTENER FOR SEARCH BUTTON
         btnSearch.setOnClickListener(new View.OnClickListener() {
+            @RequiresPermission(allOf = {Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT})
             public void onClick(View view) {
                 Log.d(TAG, "onClick: search button");
                 toggleButtonScan(view);
@@ -340,6 +346,7 @@ public class BluetoothSetUp extends Fragment {
         }
     }
 
+    @RequiresPermission(allOf = {Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT})
     public void Scanning() {
         Log.d(TAG, "toggleButton: Scanning for unpaired devices.");
         checkBTPermissions();
@@ -377,6 +384,7 @@ public class BluetoothSetUp extends Fragment {
         }
     }
 
+    @RequiresPermission(allOf = {Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT})
     public void toggleButtonScan(View view){
         Scanning();
     }
@@ -435,6 +443,7 @@ public class BluetoothSetUp extends Fragment {
     };
 
         private final BroadcastReceiver mBroadcastReceiver3 = new BroadcastReceiver() {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             @Override
             public void onReceive(Context context, Intent intent) {
                 final String action = intent.getAction();
@@ -453,6 +462,7 @@ public class BluetoothSetUp extends Fragment {
         };
 
     private final BroadcastReceiver mBroadcastReceiver4 = new BroadcastReceiver() {
+        @RequiresPermission(allOf = {Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT})
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
@@ -477,6 +487,7 @@ public class BluetoothSetUp extends Fragment {
     };
 
     private final BroadcastReceiver mBroadcastReceiver5 = new BroadcastReceiver() {
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         @Override
         public void onReceive(Context context, Intent intent) {
 
@@ -501,7 +512,7 @@ public class BluetoothSetUp extends Fragment {
             else if(status.equals("disconnected") && retryConnection == false){
                 Log.d(TAG, "mBroadcastReceiver5: Disconnected from "+mDevice.getName());
                 updateStatus("Disconnected from "+mDevice.getName());
-                mBluetoothConnection = new BluetoothConnectionService(getContext());
+                mBluetoothConnection = BluetoothConnectionService.getInstance(requireContext());
                 //mBluetoothConnection.startAcceptThread();
 
 

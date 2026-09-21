@@ -476,8 +476,6 @@ public class GridMap extends View {
 
     // receives col and row values that are just +1 of the visual col and row value (x & y)
     public void setStartCoord(int col, int row) {
-        String dir;
-        int x, y;
         showLog("Entering setStartCoord");
         startCoord[0] = col;
         startCoord[1] = row;
@@ -488,17 +486,9 @@ public class GridMap extends View {
         if (this.getStartCoordStatus())
             this.setCurCoord(col, row, direction);
 
-        dir = (direction.equals("up")) ? "NORTH" : (direction.equals("down")) ? "SOUTH" : (direction.equals("left")) ? "WEST" : "EAST";
 
-        if ((col - 2) >= 0 && (row - 1) >= 0) {
-            Home.printMessage("ROBOT" + "," + (col - 2) * 5 + "," + (row - 1) * 5 + "," + dir.toUpperCase());
-        } else {
-            showLog("out of grid");
-        }
-        // "robot", <x value> , <y value> , <bearing>
-
-        //updateStatus(col-2 + "," + (row - 1)+ ", Bearing: " + dir); // south west
-        //updateStatus(col + "," + (row + 1)+ ", Bearing: " + dir); // north east
+        // ROBOT is RPi -> tablet only. The launch/reset pose is configured on the RPi; a
+        // local map-placement action must never overwrite it over Bluetooth.
         showLog("Exiting setStartCoord");
     }
 
@@ -509,7 +499,8 @@ public class GridMap extends View {
     // both col and row are the +1 values of the DISPLAYED (x,y) coordinates
     // as a result, col is equivalent to the "col" value to be used in the cells[row][col] array
     // but row is not - it has to be converted via (20 - row) to get the "row" for the cells[row][col] array
-    // note that curCoord refers to the coordinate of the BOTTOM RIGHT cell of the robot
+    // Internally curCoord is the 1-based upper-right anchor used by this legacy renderer.
+    // Wire-protocol coordinates must use setRobotBottomLeftCell() below instead.
     public void setCurCoord(int col, int row, String direction) {
         showLog("Entering setCurCoord");
 //        BluetoothCommunications.getMessageReceivedTextView().append(Integer.toString(col));
@@ -537,6 +528,20 @@ public class GridMap extends View {
                 cells[x][y].setType("robot");
 
         showLog("Exiting setCurCoord");
+    }
+
+    /**
+     * Sets the robot from the protocol convention: (x,y) is the bottom-left cell of its 2x2
+     * footprint, with the arena origin at bottom-left.  Valid values are 0..18 inclusive.
+     */
+    public void setRobotBottomLeftCell(int x, int y, String direction) {
+        if (x < 0 || x > 18 || y < 0 || y > 18) {
+            showLog("Robot bottom-left cell is out of bounds: " + x + "," + y);
+            return;
+        }
+        setCurCoord(x + 2, y + 1, direction);
+        canDrawRobot = true;
+        invalidate();
     }
 
     public int[] getCurCoord() {
@@ -1736,7 +1741,7 @@ public class GridMap extends View {
                 cells[curCoord[0]][20 - curCoord[1]].setType("explored");
                 validPosition = true;
             }
-                break;
+            break;
 
             case "left": {
                 entry = Turn.turn(newCoords,robotDirection,"left");
@@ -1750,7 +1755,7 @@ public class GridMap extends View {
                 robotDirection = entry.getKey();
                 validPosition = true;
             }
-                break;
+            break;
 
             case "right": {
                 entry = Turn.turn(newCoords,robotDirection,"right");
@@ -1764,7 +1769,7 @@ public class GridMap extends View {
                 robotDirection = entry.getKey();
                 validPosition = true;
             }
-                break;
+            break;
 
 
 //                movesRx = ((RIGHT_TURNING_RADIUS % CELL_LENGTH) + movesRx) % 5;
@@ -1796,7 +1801,7 @@ public class GridMap extends View {
 //                    }
 //                }
 
-                
+
 
 //                movesRx = ((LEFT_TURNING_RADIUS % CELL_LENGTH) + movesRx) % 5;
 //                moves = (LEFT_TURNING_RADIUS + movesRx) / CELL_LENGTH;
@@ -1838,7 +1843,7 @@ public class GridMap extends View {
                 robotDirection = entry.getKey();
                 validPosition = true;
             }
-                break;
+            break;
 
 //                movesRx = ((BLEFT_TURNING_RADIUS % CELL_LENGTH) + movesRx) % 5;
 //                moves = (BLEFT_TURNING_RADIUS + movesRx) / CELL_LENGTH;
@@ -1877,7 +1882,7 @@ public class GridMap extends View {
                 robotDirection = entry.getKey();
                 validPosition = true;
             }
-                break;
+            break;
             default:
                 robotDirection = "error up";
                 break;
@@ -1961,7 +1966,7 @@ public class GridMap extends View {
         for (int i = 0; i < obstacles.size(); i++) {
             cells[obstacles.get(i)[0]+1][obstacles.get(i)[1]-1].setType("unexplored");
             Home.refreshMessageReceivedNS("obstacle.get(" + i + ")[0] = " + obstacles.get(i)[0]
-                            + ", obstacle.get(" + i + ")[1] = " + obstacles.get(i)[1]);
+                    + ", obstacle.get(" + i + ")[1] = " + obstacles.get(i)[1]);
         }
 
         showLog("Exit checking for obstacle collision");
@@ -2118,6 +2123,21 @@ public class GridMap extends View {
 
         return message;
 
+    }
+
+    // bluetooth_bridge_node.cpp / task1_runner.py protocol: one "OBSTACLE,<n>,<x>,<y>,<facing>"
+    // line per obstacle (x,y in cell*10 cm, facing a single N/E/S/W letter), sent right before
+    // a closing "DONE" line. IDs are stable, one-based tablet obstacle numbers; every line has
+    // a unique ID even if it is being resent after an image was previously identified.
+    public List<String> getObstacleLines() {
+        List<String> lines = new ArrayList<>();
+        for (int i = 0; i < obstacleCoord.size(); i++) {
+            int col = obstacleCoord.get(i)[0];
+            int row = obstacleCoord.get(i)[1];
+            char facing = imageBearings.get(row)[col].charAt(0);
+            lines.add("OBSTACLE," + (i + 1) + "," + (col * 10) + "," + (row * 10) + "," + facing);
+        }
+        return lines;
     }
 
     // Returns a string that contains 2 'substrings' of the obstacle information, 1 untranslated & 1 translated, separated by '_'
