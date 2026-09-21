@@ -168,7 +168,7 @@
                         android:paddingStart="25dp"
                         android:text="X:"
                         android:textAlignment="center"
-                        android:textColor="@color/colorWhite"
+                        android:textColor="@color/colorBlack"
                         android:textSize="16sp" />
 
                     <TextView
@@ -177,7 +177,7 @@
                         android:layout_height="30dp"
                         android:paddingStart="7dp"
                         android:text="0"
-                        android:textColor="@color/colorWhite"
+                        android:textColor="@color/colorBlack"
                         android:textSize="16sp" />
 
                     <TextView
@@ -190,7 +190,7 @@
                         android:paddingStart="20dp"
                         android:text="Y:"
                         android:textAlignment="center"
-                        android:textColor="@color/colorWhite"
+                        android:textColor="@color/colorBlack"
                         android:textSize="16sp" />
 
                     <TextView
@@ -199,7 +199,7 @@
                         android:layout_height="30dp"
                         android:paddingStart="7dp"
                         android:text="0"
-                        android:textColor="@color/colorWhite"
+                        android:textColor="@color/colorBlack"
                         android:textSize="16sp" />
                 </LinearLayout>
             </LinearLayout>

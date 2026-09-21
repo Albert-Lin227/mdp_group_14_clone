@@ -20,8 +20,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import java.nio.charset.StandardCharsets;
-
 public class BluetoothCommunications extends Fragment {
     private static final String TAG = "BluetoothComms";
 
@@ -77,10 +75,7 @@ public class BluetoothCommunications extends Fragment {
             messageReceivedTextView.append(sentText + "\n");
             typeBoxEditText.setText("");
 
-            if (BluetoothConnectionService.BluetoothConnectionStatus) {
-                byte[] bytes = sentText.getBytes(StandardCharsets.UTF_8);
-                BluetoothConnectionService.write(bytes);
-            }
+            Home.printMessage(sentText);
             showLog("Exiting sendTextBtn");
         });
 

@@ -38,7 +38,7 @@ public class ControlFragment extends Fragment {
     // Timer
     public static Handler timerHandler = new Handler();
 
-    //Button startSend;
+    Button sendObstaclesButton;
 
     public static Runnable timerRunnableExplore = new Runnable() {
         @Override
@@ -98,6 +98,7 @@ public class ControlFragment extends Fragment {
         exploreTimeTextView = root.findViewById(R.id.exploreTimeTextView2);
         fastestTimeTextView = root.findViewById(R.id.fastestTimeTextView2);
         exploreButton = root.findViewById(R.id.exploreToggleBtn2);
+        sendObstaclesButton = root.findViewById(R.id.sendObstaclesButton);
         fastestButton = root.findViewById(R.id.fastestToggleBtn2);
         exploreResetButton = root.findViewById(R.id.exploreResetImageBtn2);
         fastestResetButton = root.findViewById(R.id.fastestResetImageBtn2);
@@ -120,7 +121,6 @@ public class ControlFragment extends Fragment {
                     if (gridMap.getValidPosition()){
                         updateStatus("moving forward");}
                     else {
-                        Home.printMessage("obstacle");
                         updateStatus("Unable to move forward");
                     }
 
@@ -214,6 +214,18 @@ public class ControlFragment extends Fragment {
             }
         });
 
+        // Obstacle setup is separate from BEGIN. Planning is asynchronous, so the user can
+        // wait for STATUS:Ready before starting the run.
+        sendObstaclesButton.setOnClickListener(view -> {
+            for (String line : gridMap.getObstacleLines()) {
+                Home.printMessage(line);
+                showLog("Obstacle setup complete. line: " + line);
+            }
+            Home.printMessage("DONE");
+
+            robotStatusTextView.setText("Planning");
+        });
+
         // Start Task 1 challenge
         exploreButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -225,13 +237,14 @@ public class ControlFragment extends Fragment {
                     showToast("Task 1 timer stop!");
                     robotStatusTextView.setText("Task 1 Stopped");
                     timerHandler.removeCallbacks(timerRunnableExplore);
+                    Home.printMessage("STOP"); //send a string "STOP" to the robot
                 }
                 else if (exploreToggleBtn.getText().equals("STOP")) {
-                    // Get String value that represents obstacle configuration
-                    String msg = gridMap.getObstacles();
-                    // Send this String over via BT
-                    //Home.printCoords(msg);
-                    //Send BEGIN to the robot
+                    if (!Home.isRobotReady()) {
+                        showToast("Wait for STATUS: Ready after reset and planning");
+                        exploreToggleBtn.setChecked(false);
+                        return;
+                    }
                     Home.printMessage("BEGIN"); //send a string "BEGIN" to the RPI
                     // Start timer
                     Home.stopTimerFlag = false;
@@ -259,6 +272,7 @@ public class ControlFragment extends Fragment {
                     showToast("Task 2 timer stop!");
                     robotStatusTextView.setText("Task 2 Stopped");
                     timerHandler.removeCallbacks(timerRunnableFastest);
+                    Home.printMessage("STOP"); //send a string "STOP" to the robot
                 }
                 else if (fastestToggleBtn.getText().equals("STOP")) {
                     showToast("Task 2 timer start!");

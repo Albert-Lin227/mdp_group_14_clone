@@ -1,12 +1,14 @@
 package com.example.mdp_group_14;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
@@ -68,7 +70,11 @@ public class Home extends Fragment {
     public static boolean stopWk9TimerFlag = false;
 
     public static boolean trackRobot = true;
+    private static volatile boolean robotReady = false;
 
+    public static boolean isRobotReady() {
+        return robotReady;
+}
     private int g_coordX;
     private int g_coordY;
     @Override
@@ -114,7 +120,10 @@ public class Home extends Fragment {
         sharedPreferences();
         editor.putString("message", "");
         editor.putString("direction","None");
+
+
         editor.putString("connStatus", "Disconnected");
+
         editor.commit();
 
         // Toolbar
@@ -122,14 +131,27 @@ public class Home extends Fragment {
         bluetoothButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                ViewPager viewPager = getActivity().findViewById(R.id.view_pager2);
+                viewPager.setCurrentItem(1);
+
                 Intent popup = new Intent(getContext(), BluetoothSetUp.class);
                 startActivity(popup);
+
             }
         });
 
         // Bluetooth Status
         bluetoothStatus = root.findViewById(R.id.bluetoothStatus);
         bluetoothDevice = root.findViewById(R.id.bluetoothConnectedDevice);
+
+        if (BluetoothConnectionService.BluetoothConnectionStatus) {
+            bluetoothStatus.setText("connected");
+            bluetoothStatus.setTextColor(android.graphics.Color.GREEN);
+            //String connectedName = BluetoothConnectionService.getConnectedDeviceName();
+            //if (connectedName != null) bluetoothDevice.setText(connectedName);
+        }
+
 
         // Map
         gridMap = new GridMap(getContext());
@@ -208,14 +230,29 @@ public class Home extends Fragment {
     public static void printCoords(String message){
         showLog("Displaying Coords untranslated and translated");
         showLog(message);
+        
         String[] strArr = message.split("_",2);
+
+
+        //ensure strArr[1] exists and ends with newline character before sending
+        if (strArr.length > 1) {
+
+            if(!strArr[1].endsWith("\n")){
+                strArr[1]+= "\n";
+                showLog("Appended newline to strArr[1]"); //logs for Task C1
+            }
+        }
+
+
 
         // Translated ver is sent
         if (BluetoothConnectionService.BluetoothConnectionStatus == true){
+
+
             byte[] bytes = strArr[1].getBytes(Charset.defaultCharset());
             BluetoothConnectionService.write(bytes);
         }
-
+        showLog("C1 strArr[0]: " + strArr[0]);
         // Display both untranslated and translated coordinates on CHAT (for debugging)
         refreshMessageReceivedNS("Untranslated Coordinates: " + strArr[0] + "\n");
         refreshMessageReceivedNS("Translated Coordinates: "+strArr[1]);
@@ -228,10 +265,22 @@ public class Home extends Fragment {
         editor = sharedPreferences.edit();
 
         if (BluetoothConnectionService.BluetoothConnectionStatus) {
+
+
+            if (!message.endsWith("\n")) {
+                message += "\n";                  // NEW
+                showLog("Appended newline to message"); // logs for task c1
+            }
+
+
+
+
+
             byte[] bytes = message.getBytes(Charset.defaultCharset());
             BluetoothConnectionService.write(bytes);
         }
-        showLog(message);
+        showLog("C1 message: " + message);
+        //showLog(message);
         showLog("Exiting printMessage");
     }
 
@@ -244,7 +293,7 @@ public class Home extends Fragment {
 
 
 //        if (BluetoothConnectionService.BluetoothConnectionStatus) {
-////            JSONObject jsonObj = message.getJSONObject("data");
+    ////            JSONObject jsonObj = message.getJSONObject("data");
 //        JSONObject js=new JSONObject();
 //        try {
 //            JSONArray ja=new JSONArray();
@@ -273,27 +322,11 @@ public class Home extends Fragment {
     }
 
     public static void refreshDirection(String direction) {
+        // Note: this used to also echo a "ROBOT,x,y,DIR" line back over Bluetooth here, but the
+        // bluetooth_bridge_node.cpp / task1_runner.py protocol has no tablet->robot ROBOT message
+        // (ROBOT only ever flows robot->tablet), so that outbound send was removed.
         gridMap.setRobotDirection(direction);
-        int x = gridMap.getCurCoord()[0];
-        int y = gridMap.getCurCoord()[1];
-        String dir;
-        String newDir = gridMap.getRobotDirection();
-//        newDir = newDir.toUpperCase();
         directionAxisTextView.setText(sharedPreferences.getString("direction","")); //changes the UI direction display as well
-        //printMessage("Direction is set to " + direction); //OLD VER
-
-        dir= (newDir.equals("up"))?"NORTH":(newDir.equals("down"))?"SOUTH":(newDir.equals("left"))?"WEST":"EAST";
-        if ((x - 2)>=0 && (y - 1)>=0)
-        {
-//          BluetoothCommunications.getMessageReceivedTextView().append("ROBOT" + "," + (col - 2)*5 + "," + (row - 1)*5 + "," + dir.toUpperCase());
-            Home.printMessage("ROBOT" + "," + (x-2)*5 + "," + (y-1)*5 + "," + dir.toUpperCase());
-        }
-        else{
-            showLog("out of grid");
-        }
-//        printMessage("ROBOT,"+ x + "," + y + "," + dir);
-//        BluetoothCommunications.getMessageReceivedTextView().append("ROBOT,"+ (x-1) +"," + (y-1) + "," + dir+"\n"); //for troubleshooting
-
     }
 
     public static void refreshLabel() {
@@ -307,6 +340,7 @@ public class Home extends Fragment {
     }
 
     private final BroadcastReceiver mBroadcastReceiver5 = new BroadcastReceiver() {
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         @Override
         public void onReceive(Context context, Intent intent) {
             BluetoothDevice mDevice = intent.getParcelableExtra("Device");
@@ -332,6 +366,9 @@ public class Home extends Fragment {
 
                 editor.putString("connStatus", "Disconnected");
 
+                editor.commit();
+
+
                 myDialog.show();
             }
             editor.commit();
@@ -345,11 +382,11 @@ public class Home extends Fragment {
     BroadcastReceiver messageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            PathTranslator pathTranslator = new PathTranslator(gridMap);    // For real-time updating on displayed gridmap
             String message = intent.getStringExtra("receivedMessage");
+            if (message == null) return;
+            message = message.trim();
+            if (message.isEmpty()) return;
             showLog("receivedMessage: message --- " + message);
-
-            String[] cmdd = message.split(",");
 
 //            if (message.contains(" "))
 //            {
@@ -364,40 +401,64 @@ public class Home extends Fragment {
             g_coordY = global_store[1];
             ArrayList<String> mapCoord = new ArrayList<>();
 
-            //STATUS:<input>
-            if (message.contains("STATUS")) {
-                robotStatusTextView.setText(message.split(":")[1]);
+            // STATUS:<input>. Match the command prefix exactly: status text must not be parsed
+            // as another command merely because it happens to contain one of these words.
+            if (message.startsWith("STATUS:")) {
+                String status = message.substring(7).trim();
+                robotReady = "Ready".equalsIgnoreCase(status);
+                if (robotStatusTextView != null) robotStatusTextView.setText(status);
+                return;
             }
-            //ROBOT|5,4,EAST (Early version of updating robot position via comms)
-            if(message.contains("ROBOT")) {
-                String[] cmd = message.split("\\|");
-                String[] sentCoords = cmd[1].split(",");
-                String[] sentDirection = sentCoords[2].split("\\.");
-//                BluetoothCommunications.getMessageReceivedTextView().append("\n");
-                String direction = "";
-                String abc = String.join("", sentDirection);
-                if (abc.contains("EAST")) {
-                    direction = "right";
+            //ROBOT,<x>,<y>,<N|E|S|W> from bluetooth_bridge_node.cpp / task1_runner.py
+            if(message.startsWith("ROBOT,")) {
+                String[] cmd = message.split(",", -1);
+                if (cmd.length != 4) {
+                    showLog("Malformed ROBOT line: " + message);
+                    return;
                 }
-                else if (abc.contains("NORTH")) {
-                    direction = "up";
+                int sentX;
+                int sentY;
+                char facing;
+                try {
+                    sentX = Integer.parseInt(cmd[1].trim());
+                    sentY = Integer.parseInt(cmd[2].trim());
+                    String facingField = cmd[3].trim();
+                    if (facingField.length() != 1) throw new IllegalArgumentException("direction is not one letter");
+                    facing = facingField.charAt(0);
+                } catch (IllegalArgumentException e) {
+                    showLog("Malformed ROBOT line: " + message);
+                    return;
                 }
-                else if (abc.contains("WEST")) {
-                    direction = "left";
+                String direction;
+                switch (facing) {
+                    case 'E':
+                        direction = "right";
+                        break;
+                    case 'N':
+                        direction = "up";
+                        break;
+                    case 'W':
+                        direction = "left";
+                        break;
+                    case 'S':
+                        direction = "down";
+                        break;
+                    default:
+                        direction = "";
                 }
-                else if (abc.contains("SOUTH")) {
-                    direction = "down";
+                if (direction.isEmpty()) {
+                    showLog("Invalid ROBOT direction: " + cmd[3]);
+                    return;
                 }
-                else{
-                    direction = "";
-                }
-                gridMap.setCurCoord(Integer.valueOf(sentCoords[1]) + 2, 19 - Integer.valueOf(sentCoords[0]), direction);
+                gridMap.setRobotBottomLeftCell(sentX, sentY, direction);
             }
             //image format from RPI is "TARGET~<obID>~<ImValue>" eg TARGET~3~7
-            else if(message.contains("TARGET")) {
+            else if(message.startsWith("TARGET,")) {
                 try {
-                    String[] cmd = message.split(",");
-                    BluetoothCommunications.updateMessageLog(context, "Obstacle no: " + cmd[1]+ "TARGET ID: " + cmd[2]);
+                    String[] cmd = message.split(",", -1);
+                    if (cmd.length != 3) throw new IllegalArgumentException("Malformed TARGET line");
+                    int obstacleNumber = Integer.parseInt(cmd[1].trim());
+                    BluetoothCommunications.updateMessageLog(context, "Obstacle no: " + obstacleNumber + " TARGET ID: " + cmd[2].trim());
 
 //                    if (cmd[2].contains("STOP"))
 //                    {
@@ -407,8 +468,8 @@ public class Home extends Fragment {
 //
 //                    }
 
-                    gridMap.updateIDFromRpi(String.valueOf(Integer.valueOf(cmd[1])-1), cmd[2]);
-                    obstacleID = String.valueOf(Integer.valueOf(cmd[1]) - 2);
+                    gridMap.updateIDFromRpi(String.valueOf(obstacleNumber - 1), cmd[2].trim());
+                    obstacleID = String.valueOf(obstacleNumber - 1);
 
 
 //                    int ob= Integer.parseInt(obstacleID);
@@ -419,7 +480,7 @@ public class Home extends Fragment {
                     e.printStackTrace();
                 }
             }
-            else if(message.contains("ARROW")){
+            else if(message.startsWith("ARROW,")){
                 String[] cmd = message.split(",");
 //                BluetoothCommunications.getMessageReceivedTextView().append("Obstacle no: " + cmd[1]+ "TARGET ID: " + cmd[2] + "\n");
 
@@ -437,13 +498,13 @@ public class Home extends Fragment {
 //                pathTranslator.altTranslation(message.split("\\|")[1]);   // last min addition - untested
             }*/
 
-            //NEW VER: Expects a syntax of eg. MOVE,<DISTANCE IN CM>,<DIRECTION>.
-            //NEW VER: Expects a syntax of eg. TURN,<DIRECTION>.
-
-            //CASE 1 & 2: MoveInstruction or TurnInstruction sent
-            else if(message.contains("MOVE") || message.contains("TURN")){
-                updateStatus("translation");
-                pathTranslator.translatePath(message); //splitting and translation will be done in PathTranslator
+            //PLAN:<WAITING|PLANNING|DONE> from task1_runner.py
+            else if(message.startsWith("PLAN:")) {
+                Home.refreshMessageReceivedNS("PLAN: " + message.substring(5).trim());
+            }
+            //RESET:<WAITING|DONE> from task1_runner.py
+            else if(message.startsWith("RESET:")) {
+                Home.refreshMessageReceivedNS("RESET: " + message.substring(6).trim());
             }
             else if(message.contains("STOP"))
             {
@@ -519,4 +580,5 @@ public class Home extends Fragment {
         toast.setGravity(Gravity.TOP,0, 0);
         toast.show();
     }
+
 }
