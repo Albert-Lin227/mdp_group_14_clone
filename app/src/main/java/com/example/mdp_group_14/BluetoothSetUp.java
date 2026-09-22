@@ -542,7 +542,7 @@ public class BluetoothSetUp extends Fragment {
     }
 
     public void startBTConnection(BluetoothDevice device, UUID uuid){
-        Log.d(TAG, "startBTConnection: Initializing RFCOM Bluetooth Connection");
+        Log.d(TAG, "startBTConnection: Initializing RFCOMM Bluetooth Connection");
         mBluetoothConnection.startClientThread(device, uuid);
     }
 
