@@ -278,9 +278,12 @@ public class Home extends Fragment {
 
             byte[] bytes = message.getBytes(Charset.defaultCharset());
             BluetoothConnectionService.write(bytes);
+            android.util.Log.d("BT_TX", java.util.Arrays.toString(bytes)); // for debugging android bluetooth transmission
         }
         showLog("C1 message: " + message);
         //showLog(message);
+
+
         showLog("Exiting printMessage");
     }
 
@@ -582,3 +585,4 @@ public class Home extends Fragment {
     }
 
 }
+
