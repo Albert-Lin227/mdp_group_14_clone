@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -20,7 +21,6 @@ import android.widget.ToggleButton;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import java.util.Arrays;
 
 public class ControlFragment extends Fragment {
     private static final String TAG = "ControlFragment";
@@ -39,6 +39,14 @@ public class ControlFragment extends Fragment {
     public static Handler timerHandler = new Handler();
 
     Button sendObstaclesButton;
+
+    // Manual drive is a fixed ~0.3s burst per command on the robot side (see
+    // MANUAL_BURST_S in task1_runner.py), not a "hold to move" state. So holding a
+    // direction button here has to keep resending that same command while pressed -
+    // comfortably inside the burst window - or the robot stops after ~0.3s even
+    // though the button still looks pressed.
+    private static final long MANUAL_DRIVE_REPEAT_MS = 150;
+    private final Handler manualDriveHandler = new Handler();
 
     public static Runnable timerRunnableExplore = new Runnable() {
         @Override
@@ -110,108 +118,69 @@ public class ControlFragment extends Fragment {
         gridMap = Home.getGridMap();
 
         // Button Listener
-        moveForwardImageBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showLog("Clicked moveForwardImageBtn");
-                if (gridMap.getCanDrawRobot()) {
-                    gridMap.moveRobot("forward");
-                    Home.refreshLabel();    // update x and y coordinate displayed
-                    // display different statuses depending on validity of robot action
-                    if (gridMap.getValidPosition()){
-                        updateStatus("moving forward");}
-                    else {
-                        updateStatus("Unable to move forward");
-                    }
-
-                    Home.printMessage("f");
-                }
-                else
-                    updateStatus("Please press 'SET START POINT'");
-                showLog("Exiting moveForwardImageBtn");
+        // Each button below sends its command once immediately on press (onPress,
+        // same behaviour/toasts as before), then - as long as it stays held -
+        // resends only the Bluetooth command every MANUAL_DRIVE_REPEAT_MS so the
+        // robot's motion doesn't die out between bursts. The local grid preview and
+        // toast are deliberately NOT repeated: the map already gets corrected by the
+        // ROBOT,<x>,<y>,<facing> lines the robot sends back, so bumping the preview
+        // by a full cell on every repeat tick would make it jump around.
+        setupManualDriveButton(moveForwardImageBtn, "f", () -> {
+            showLog("Clicked moveForwardImageBtn");
+            if (gridMap.getCanDrawRobot()) {
+                updateStatus("moving forward");
             }
+            else
+                updateStatus("Please press 'SET START POINT'");
+            showLog("Exiting moveForwardImageBtn");
         });
 
-        turnRightImageBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showLog("Clicked turnRightImageBtn");
-                if (gridMap.getCanDrawRobot()) {
-                    gridMap.moveRobot("right");
-                    Home.refreshLabel();
-                    Home.printMessage("fr");
-//                    showLog("test");
-                    System.out.println(Arrays.toString(gridMap.getCurCoord()));
-                }
-                else
-                    updateStatus("Please press 'SET START POINT'");
-                showLog("Exiting turnRightImageBtn");
+        setupManualDriveButton(turnRightImageBtn, "fr", () -> {
+            showLog("Clicked turnRightImageBtn");
+            if (gridMap.getCanDrawRobot()) {
+                updateStatus("turning right");
             }
+            else
+                updateStatus("Please press 'SET START POINT'");
+            showLog("Exiting turnRightImageBtn");
         });
-        turnbrightImageBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showLog("Clicked turnbRightImageBtn");
-                if (gridMap.getCanDrawRobot()) {
-                    gridMap.moveRobot("backright");
-                    Home.refreshLabel();
-                    Home.printMessage("br");
-                    System.out.println(Arrays.toString(gridMap.getCurCoord()));
-                }
-                else
-                    updateStatus("Please press 'SET START POINT'");
-                showLog("Exiting turnbRightImageBtn");
+        setupManualDriveButton(turnbrightImageBtn, "br", () -> {
+            showLog("Clicked turnbRightImageBtn");
+            if (gridMap.getCanDrawRobot()) {
+                updateStatus("turning right");
             }
+            else
+                updateStatus("Please press 'SET START POINT'");
+            showLog("Exiting turnbRightImageBtn");
         });
 
-        moveBackImageBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showLog("Clicked moveBackwardImageBtn");
-                if (gridMap.getCanDrawRobot()) {
-                    gridMap.moveRobot("back");
-                    Home.refreshLabel();
-                    if (gridMap.getValidPosition())
-                        updateStatus("moving backward");
-                    else
-                        updateStatus("Unable to move backward");
-                    Home.printMessage("b");
-                }
-                else
-                    updateStatus("Please press 'SET START POINT'");
-                showLog("Exiting moveBackwardImageBtn");
+        setupManualDriveButton(moveBackImageBtn, "b", () -> {
+            showLog("Clicked moveBackwardImageBtn");
+            if (gridMap.getCanDrawRobot()) {
+                updateStatus("moving backward");
             }
+            else
+                updateStatus("Please press 'SET START POINT'");
+            showLog("Exiting moveBackwardImageBtn");
         });
 
-        turnLeftImageBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showLog("Clicked turnLeftImageBtn");
-                if (gridMap.getCanDrawRobot()) {
-                    gridMap.moveRobot("left");
-                    Home.refreshLabel();
-                    updateStatus("turning left");
-                    Home.printMessage("fl");
-                }
-                else
-                    updateStatus("Please press 'SET START POINT'");
-                showLog("Exiting turnLeftImageBtn");
+        setupManualDriveButton(turnLeftImageBtn, "fl", () -> {
+            showLog("Clicked turnLeftImageBtn");
+            if (gridMap.getCanDrawRobot()) {
+                updateStatus("turning left");
             }
+            else
+                updateStatus("Please press 'SET START POINT'");
+            showLog("Exiting turnLeftImageBtn");
         });
-        turnbleftImageBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showLog("Clicked turnbLeftImageBtn");
-                if (gridMap.getCanDrawRobot()) {
-                    gridMap.moveRobot("backleft");
-                    Home.refreshLabel();
-                    updateStatus("turning left");
-                    Home.printMessage("bl");
-                }
-                else
-                    updateStatus("Please press 'SET START POINT'");
-                showLog("Exiting turnbLeftImageBtn");
+        setupManualDriveButton(turnbleftImageBtn, "bl", () -> {
+            showLog("Clicked turnbLeftImageBtn");
+            if (gridMap.getCanDrawRobot()) {
+                updateStatus("turning left");
             }
+            else
+                updateStatus("Please press 'SET START POINT'");
+            showLog("Exiting turnbLeftImageBtn");
         });
 
         // Obstacle setup is separate from BEGIN. Planning is asynchronous, so the user can
@@ -354,6 +323,43 @@ public class ControlFragment extends Fragment {
 
 
 
+    /**
+    * Wires an ImageButton for manual drive: onPress runs once immediately (the status
+    * toast only), and as long
+     * as the button stays held, "command" (f/b/fl/fr/bl/br) is resent over Bluetooth every
+     * MANUAL_DRIVE_REPEAT_MS. The send is gated on gridMap.getCanDrawRobot(), re-checked on
+     * every tick, so nothing is sent (initially or mid-hold) once/unless a start point is set.
+     */
+    private void setupManualDriveButton(ImageButton button, String command, Runnable onPress) {
+        final Runnable repeatSend = new Runnable() {
+            @Override
+            public void run() {
+                if (gridMap.getCanDrawRobot()) {
+                    Home.printMessage(command);
+                }
+                manualDriveHandler.postDelayed(this, MANUAL_DRIVE_REPEAT_MS);
+            }
+        };
+        button.setOnTouchListener((view, event) -> {
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    onPress.run();
+                    if (gridMap.getCanDrawRobot()) {
+                        Home.printMessage(command);
+                    }
+                    manualDriveHandler.postDelayed(repeatSend, MANUAL_DRIVE_REPEAT_MS);
+                    return true;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    manualDriveHandler.removeCallbacks(repeatSend);
+                    view.performClick();
+                    return true;
+                default:
+                    return false;
+            }
+        });
+    }
+
     private static void showLog(String message) {
         Log.d(TAG, message);
     }
@@ -365,6 +371,9 @@ public class ControlFragment extends Fragment {
     @Override
     public void onDestroy(){
         super.onDestroy();
+        // Stop any manual-drive button still mid-repeat (e.g. the fragment is torn down
+        // while a button is held) so it can't keep sending after the view is gone.
+        manualDriveHandler.removeCallbacksAndMessages(null);
     }
 
     private void updateStatus(String message) {

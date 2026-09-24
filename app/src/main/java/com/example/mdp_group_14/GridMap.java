@@ -12,6 +12,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.DragEvent;
@@ -60,6 +61,13 @@ public class GridMap extends View {
     private final Paint exploredColor = new Paint();
     private final Paint arrowColor = new Paint();
     private final Paint fastestPathColor = new Paint();
+
+    // Font for a resolved TARGET,<obstacle number>,<target id> id, drawn on top of the obstacle's
+    // cell in place of its plain obstacle number - large and bold so it reads at a glance,
+    // vs. the small plain obstacle-number label (OBSTACLE_NUMBER_TEXT_SIZE) it replaces.
+    private static final float OBSTACLE_NUMBER_TEXT_SIZE = 15f;
+    private static final float TARGET_ID_TEXT_SIZE = 32f;
+    private static final float TARGET_ID_TEXT_Y_OFFSET = 12f;
 
     private static String robotDirection = "None";
     private static int[] startCoord = new int[]{-1, -1};
@@ -182,22 +190,25 @@ public class GridMap extends View {
             if (ITEM_LIST.get(row)[col] == null || ITEM_LIST.get(row)[col].equals("")
                     || ITEM_LIST.get(row)[col].equals("Nil")) {
                 showLog("drawObstacles: drawing obstacle ID");
-                whitePaint.setTextSize(15);
+                whitePaint.setTypeface(Typeface.DEFAULT);
+                whitePaint.setTextSize(OBSTACLE_NUMBER_TEXT_SIZE);
                 canvas.drawText(
                         String.valueOf(i + 1),
                         cells[col + 1][19 - row].startX + ((cells[1][1].endX - cells[1][1].startX) / 2),
                         cells[col + 1][19 - row].startY + ((cells[1][1].endY - cells[1][1].startY) / 2) + 5,
                         whitePaint
                 );
-            } else {    // cells[col + 1][19 - row] is an explored obstacle (image has been identified)
-                showLog("drawObstacles: drawing image ID");
-                whitePaint.setTextSize(17);
+            } else {    // cells[col + 1][19 - row] is an explored obstacle (a TARGET id has been received)
+                showLog("drawObstacles: drawing target ID");
+                whitePaint.setTypeface(Typeface.DEFAULT_BOLD);
+                whitePaint.setTextSize(TARGET_ID_TEXT_SIZE);
                 canvas.drawText(
                         ITEM_LIST.get(row)[col],
                         cells[col + 1][19 - row].startX + ((cells[1][1].endX - cells[1][1].startX) / 2),
-                        cells[col + 1][19 - row].startY + ((cells[1][1].endY - cells[1][1].startY) / 2) + 10,
+                        cells[col + 1][19 - row].startY + ((cells[1][1].endY - cells[1][1].startY) / 2) + TARGET_ID_TEXT_Y_OFFSET,
                         whitePaint
                 );
+                whitePaint.setTypeface(Typeface.DEFAULT); // don't leak bold onto the next obstacle's plain number
             }
 
             // color the face direction
@@ -335,9 +346,8 @@ public class GridMap extends View {
 
     private void drawRobot(Canvas canvas, int[] curCoord) {
 
-        float xCoord, yCoord;
         BitmapFactory.Options op = new BitmapFactory.Options();
-        Bitmap bm, mapscalable;
+        Bitmap bm;
 
         showLog("Entering drawRobot");
         showLog("curCoord[0] = " + curCoord[0] + ", curCoord[1] = " + curCoord[1]);
@@ -350,66 +360,20 @@ public class GridMap extends View {
             showLog("col is out of bounds");
             return;
         } else {
-            // draws the 2x2 squares in colour robotColor
-            // horizontal lines
-            for (int y = androidRowCoord - 2; y <= androidRowCoord; y++) {
-                canvas.drawLine(
-                        cells[curCoord[0] - 1][21 - y - 2].startX,
-                        cells[curCoord[0]][21 - y - 2].startY,
-                        cells[curCoord[0]][21 - y - 2].endX,
-                        cells[curCoord[0]][21 - y - 2].startY,
-                        robotColor
-                );
-            }
-            // vertical lines
-            for (int x = curCoord[0] - 2; x <= curCoord[0]; x++) {
-                canvas.drawLine(
-                        cells[x][21 - androidRowCoord - 1].endX,
-                        cells[x][21 - androidRowCoord - 1].endY,
-                        cells[x][21 - androidRowCoord - 1].endX,
-                        cells[x][21 - androidRowCoord - 2].startY,
-                        robotColor
-                );
-            }
-
-
-            // use cells[initialCol][20 - initialRow] as ref
+            // Use the lower-left cell of the legacy robot coordinate as the 1x1 render cell.
+            int robotResource;
             switch (this.getRobotDirection()) {
                 case "up":
-                    //This makes the coordinates adjustable instead of static
-                    op.inMutable = true;
-                    //change icon pic
-                    bm = BitmapFactory.decodeResource(getResources(), R.drawable.poke_up, op);
-
-                    mapscalable = Bitmap.createScaledBitmap(bm, 51, 51, true);
-                    xCoord = cells[curCoord[0] - 1][20 - androidRowCoord].startX;
-                    yCoord = cells[curCoord[0]][20 - androidRowCoord - 1].startY;
-                    canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
+                    robotResource = R.drawable.poke_up;
                     break;
                 case "down":
-                    op.inMutable = true;
-                    bm = BitmapFactory.decodeResource(getResources(), R.drawable.poke_down, op);
-                    mapscalable = Bitmap.createScaledBitmap(bm, 51, 51, true);
-                    xCoord = cells[curCoord[0] - 1][20 - androidRowCoord].startX;
-                    yCoord = cells[curCoord[0]][20 - androidRowCoord - 1].startY;
-                    canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
+                    robotResource = R.drawable.poke_down;
                     break;
                 case "right":
-                    op.inMutable = true;
-                    bm = BitmapFactory.decodeResource(getResources(), R.drawable.poke_right, op);
-                    mapscalable = Bitmap.createScaledBitmap(bm, 51, 51, true);
-                    xCoord = cells[curCoord[0] - 1][20 - androidRowCoord].startX;
-                    yCoord = cells[curCoord[0]][20 - androidRowCoord - 1].startY;
-                    canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
-
+                    robotResource = R.drawable.poke_right;
                     break;
                 case "left":
-                    op.inMutable = true;
-                    bm = BitmapFactory.decodeResource(getResources(), R.drawable.poke_left, op);
-                    mapscalable = Bitmap.createScaledBitmap(bm, 51, 51, true);
-                    xCoord = cells[curCoord[0] - 1][20 - androidRowCoord].startX;
-                    yCoord = cells[curCoord[0]][20 - androidRowCoord - 1].startY;
-                    canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
+                    robotResource = R.drawable.poke_left;
                     break;
                 default:
                     Toast.makeText(
@@ -417,8 +381,18 @@ public class GridMap extends View {
                             "Error with drawing robot (unknown direction)",
                             Toast.LENGTH_SHORT
                     ).show();
-                    break;
+                        return;
             }
+
+                    op.inMutable = true;
+                    bm = BitmapFactory.decodeResource(getResources(), robotResource, op);
+                    int robotSize = Math.round(cellSize - cellSize / 6f);
+                    Bitmap mapscalable = Bitmap.createScaledBitmap(bm, robotSize, robotSize, true);
+                    float xCoord = cells[curCoord[0] - 1][20 - androidRowCoord].startX
+                        + (cellSize - robotSize) / 2f;
+                    float yCoord = cells[curCoord[0] - 1][20 - androidRowCoord].startY
+                        + (cellSize - robotSize) / 2f;
+                    canvas.drawBitmap(mapscalable, xCoord, yCoord, null);
         }
         showLog("Exiting drawRobot");
     }
@@ -522,17 +496,16 @@ public class GridMap extends View {
         this.updateRobotAxis(col, row, direction);
 
         row = this.convertRow(row);
-        // cells[col][row] is the BOTTOM LEFT of the 2x2 robot
-        for (int x = col - 1; x <= col; x++)
-            for (int y = row - 1; y <= row; y++)
-                cells[x][y].setType("robot");
+        // The legacy coordinate is the upper-right anchor of the old 2x2 robot.
+        // Render and highlight its lower-left cell as the robot's 1x1 position.
+        cells[col - 1][row].setType("robot");
 
         showLog("Exiting setCurCoord");
     }
 
     /**
-     * Sets the robot from the protocol convention: (x,y) is the bottom-left cell of its 2x2
-     * footprint, with the arena origin at bottom-left.  Valid values are 0..18 inclusive.
+     * Sets the robot from the protocol convention: (x,y) is the robot's cell,
+     * with the arena origin at bottom-left. Valid values are 0..18 inclusive.
      */
     public void setRobotBottomLeftCell(int x, int y, String direction) {
         if (x < 0 || x > 18 || y < 0 || y > 18) {
@@ -574,9 +547,7 @@ public class GridMap extends View {
             showLog("oldRow has gone out of grid.");
             return;
         }
-        for (int x = oldCol - 1; x <= oldCol; x++)
-            for (int y = oldRow - 1; y <= oldRow; y++)
-                cells[x][y].setType("explored");
+        cells[oldCol - 1][oldRow].setType("explored");
         showLog("Exiting setOldRobotCoord");
     }
 
@@ -617,22 +588,6 @@ public class GridMap extends View {
         row = this.convertRow(row);
         cells[col][row].setType("obstacle");
         showLog("Exiting setObstacleCoord");
-
-        int obstacleNumber = GridMap.obstacleCoord.size();
-
-        if (((col - 1)) >= 0 && row >= 0) {
-
-            Home.printMessage("OBSTACLE" + "," + obstacleNumber + "," + (col - 1) * 10 + "," + (19 - row) * 10 + "," + (imageBearings.get(19 - row)[col - 1]).toUpperCase() + "\n");
-//            BluetoothCommunications.getMessageReceivedTextView().append(Integer.toString((col - 1))+"\n");
-//            BluetoothCommunications.getMessageReceivedTextView().append(Integer.toString((19 - row))+"\n");
-//            BluetoothCommunications.getMessageReceivedTextView().append((imageBearings.get(19 - row)[col - 1]).toUpperCase()+"\n");
-        } else {
-            showLog("out of grid");
-        }
-        //updateStatus(obstacleNumber + "," + (col - 1)+ "," + (19 - row) + ","  + imageBearings.get(19 - row)[col - 1]); // north east
-
-
-//        Home.printMessage({"key":"hello","value":"hello"});
     }
 
     private ArrayList<int[]> getObstacleCoord() {
@@ -724,9 +679,6 @@ public class GridMap extends View {
 
         String tempID, tempBearing, testID;
         endColumn = endRow = -999;
-        int obstacleNumber = GridMap.obstacleCoord.size();
-
-        int obstacleid = -1;
         showLog("dragEvent.getAction() == " + dragEvent.getAction());
         showLog("dragEvent.getResult() is " + dragEvent.getResult());
         showLog("initialColumn = " + initialColumn + ", initialRow = " + initialRow);
@@ -735,11 +687,9 @@ public class GridMap extends View {
         if ((dragEvent.getAction() == DragEvent.ACTION_DRAG_ENDED)
                 && (endColumn == -999 || endRow == -999) && !dragEvent.getResult()) {
             // check if 2 arrays are same, then remove
-            int obstacleid3 = -1;
             for (int i = 0; i < obstacleCoord.size(); i++) {
                 if (Arrays.equals(obstacleCoord.get(i), new int[]{initialColumn - 1, initialRow - 1})) {
                     obstacleCoord.remove(i);
-                    obstacleid3 = i;
                 }
 
 
@@ -747,13 +697,6 @@ public class GridMap extends View {
             cells[initialColumn][20 - initialRow].setType("unexplored");
             ITEM_LIST.get(initialRow - 1)[initialColumn - 1] = "";
             imageBearings.get(initialRow - 1)[initialColumn - 1] = "";
-
-            //updateStatus( obstacleNumber + "," + (initialColumn) + "," + (initialRow) + ", Bearing: " + "-1");
-            if (((initialColumn - 1)) >= 0 && ((initialRow - 1)) >= 0) {
-                Home.printMessage("OBSTACLE" + "," + (obstacleid3 + 1) + "," + (initialColumn) * 10 + "," + (initialRow) * 10 + "," + "-1");
-            } else {
-                showLog("out of grid");
-            }
 
         }
         // drop within gridmap
@@ -770,12 +713,10 @@ public class GridMap extends View {
             // if dropped within mapview but outside drawn grids, remove obstacle from lists
             // drag to left side of grid
             else if (endColumn <= 0 || endRow <= 0) {
-                int obstacleid2 = -1;
                 for (int i = 0; i < obstacleCoord.size(); i++) {
                     if (Arrays.equals(obstacleCoord.get(i),
                             new int[]{initialColumn - 1, initialRow - 1})) {
                         obstacleCoord.remove(i);
-                        obstacleid2 = i;
                     }
 
 
@@ -783,15 +724,6 @@ public class GridMap extends View {
                 cells[initialColumn][20 - initialRow].setType("unexplored");
                 ITEM_LIST.get(initialRow - 1)[initialColumn - 1] = "";
                 imageBearings.get(initialRow - 1)[initialColumn - 1] = "";
-
-
-                //updateStatus( obstacleNumber + "," + (initialColumn) + "," + (initialRow) + ", Bearing: " + "-1");
-
-                if (((initialColumn - 1)) >= 0 && ((initialRow - 1)) >= 0) {
-                    Home.printMessage("OBSTACLE" + "," + (obstacleid2 + 1) + "," + (initialColumn) * 10 + "," + (initialRow) * 10 + "," + "-1");
-                } else {
-                    showLog("out of grid");
-                }
 
             }
             // if dropped within gridmap, shift it to new position unless already got existing
@@ -815,20 +747,11 @@ public class GridMap extends View {
                     for (int i = 0; i < obstacleCoord.size(); i++) {
                         if (Arrays.equals(obstacleCoord.get(i), new int[]{initialColumn - 1, initialRow - 1})) {
                             obstacleCoord.set(i, new int[]{endColumn - 1, endRow - 1});
-                            obstacleid = i;
                         }
                     }
                     // set the old obstacle's position to "unexplored" and new position to either "obstacle" or "image"
                     cells[endColumn][20 - endRow].setType(cells[initialColumn][20 - initialRow].type);
                     cells[initialColumn][20 - initialRow].setType("unexplored");
-
-                    //updateStatus(obstacleid+1+ "," + (endColumn-1) + "," + (endRow-1) + ", Bearing: " + tempBearing);
-
-                    if (((endColumn - 1)) >= 0 && ((endRow - 1)) >= 0) {
-                        Home.printMessage("OBSTACLE" + "," + (obstacleid + 1) + "," + (endColumn - 1) * 10 + "," + (endRow - 1) * 10 + "," + tempBearing.toUpperCase());
-                    } else {
-                        showLog("out of grid");
-                    }
 
                 }
             } else {
@@ -946,15 +869,6 @@ public class GridMap extends View {
                             imageBearings.get(tRow - 1)[tCol - 1] = newBearing;
 
 
-                            int obstacleid = -1;
-                            // update existing obstacleCoord entry that matches the original (x,y) coords with new (x',y') coords
-                            for (int m = 0; m < obstacleCoord.size(); m++) {
-                                if (Arrays.equals(obstacleCoord.get(m), new int[]{tCol - 1, tRow - 1})) {
-                                    obstacleid = m;
-                                }
-                            }
-
-
 //                            showLog("tRow - 1 = " + (tRow - 1));
 //                            showLog("tCol - 1 = " + (tCol - 1));
 //                            showLog("newID = " + newID);
@@ -969,14 +883,6 @@ public class GridMap extends View {
 //                            val2IdxMap.put(newID, oldObstacleId);
 //                            if(!newID.equals("Nil")) cells[tCol][20 - tRow].setType("image"); // if new id is set then show on obstacle on app
                             else cells[tCol][20 - tRow].setType("obstacle");
-                            int obstacleNumber = GridMap.obstacleCoord.size();
-                            //updateStatus( (obstacleid+1) + "," + newID + ","+(tCol - 1) + "," + (tRow - 1) + ", Bearing: " + newBearing);
-
-                            if (((tCol - 1)) >= 0 && ((tRow - 1)) >= 0) {
-                                Home.printMessage("OBSTACLE" + "," + (obstacleid + 1) + "," + (tCol - 1) * 10 + "," + (tRow - 1) * 10 + "," + newBearing.toUpperCase());
-                            } else {
-                                showLog("out of grid");
-                            }
                             callInvalidate();
                         }
                     });
@@ -1016,9 +922,7 @@ public class GridMap extends View {
 
                     if (startCoord[0] >= 2 && startCoord[1] >= 2) {
                         showLog("startCoord = " + startCoord[0] + " " + startCoord[1]);
-                        for (int x = startCoord[0] - 1; x <= startCoord[0]; x++)
-                            for (int y = startCoord[1] - 1; y <= startCoord[1]; y++)
-                                cells[x][y].setType("unexplored");
+                        cells[startCoord[0] - 1][20 - startCoord[1]].setType("unexplored");
                     }
                 } else
                     canDrawRobot = true;
@@ -1738,7 +1642,7 @@ public class GridMap extends View {
 
                 curCoord[0] = last[0];
                 curCoord[1] = last[1];
-                cells[curCoord[0]][20 - curCoord[1]].setType("explored");
+                cells[curCoord[0] - 1][20 - curCoord[1]].setType("explored");
                 validPosition = true;
             }
             break;
@@ -1751,7 +1655,7 @@ public class GridMap extends View {
                 }
                 curCoord[0] = last[0];
                 curCoord[1] = last[1];
-                cells[curCoord[0]][20 - curCoord[1]].setType("explored");
+                cells[curCoord[0] - 1][20 - curCoord[1]].setType("explored");
                 robotDirection = entry.getKey();
                 validPosition = true;
             }
@@ -1765,7 +1669,7 @@ public class GridMap extends View {
                 }
                 curCoord[0] = last[0];
                 curCoord[1] = last[1];
-                cells[curCoord[0]][20 - curCoord[1]].setType("explored");
+                cells[curCoord[0] - 1][20 - curCoord[1]].setType("explored");
                 robotDirection = entry.getKey();
                 validPosition = true;
             }
@@ -2042,12 +1946,10 @@ public class GridMap extends View {
             showLog("if robot was not at invalid pos prev");
             if ((curCoord[0] > 1 && curCoord[0] < 21) && (curCoord[1] > -1 && curCoord[1] < 20)) {
                 showLog("prev pos was within grid");
-                for (int i = curCoord[0] - 1; i <= curCoord[0]; i++) {
-                    for (int j = curCoord[1] - 1; j <= curCoord[1]; j++) {
-                        if (!(cells[i][20-j-1]).type.equals("obstacle")){
-                            cells[i][20 - j - 1].setType("explored");
-                        }
-                    }
+                int previousCellX = curCoord[0] - 1;
+                int previousCellY = 20 - curCoord[1];
+                if (!cells[previousCellX][previousCellY].type.equals("obstacle")) {
+                    cells[previousCellX][previousCellY].setType("explored");
                 }
             }
         }
@@ -2125,17 +2027,16 @@ public class GridMap extends View {
 
     }
 
-    // bluetooth_bridge_node.cpp / task1_runner.py protocol: one "OBSTACLE,<n>,<x>,<y>,<facing>"
-    // line per obstacle (x,y in cell*10 cm, facing a single N/E/S/W letter), sent right before
-    // a closing "DONE" line. IDs are stable, one-based tablet obstacle numbers; every line has
-    // a unique ID even if it is being resent after an image was previously identified.
+    // bluetooth_bridge_node.cpp / task1_runner.py protocol: one "OBSTACLE,<x>,<y>,<facing>"
+    // line per obstacle, using zero-based grid cells and a single N/S/E/W facing letter.
     public List<String> getObstacleLines() {
         List<String> lines = new ArrayList<>();
         for (int i = 0; i < obstacleCoord.size(); i++) {
             int col = obstacleCoord.get(i)[0];
             int row = obstacleCoord.get(i)[1];
-            char facing = imageBearings.get(row)[col].charAt(0);
-            lines.add("OBSTACLE," + (i + 1) + "," + (col * 10) + "," + (row * 10) + "," + facing);
+            String bearing = imageBearings.get(row)[col];
+            char facing = bearing == null || bearing.isEmpty() ? '-' : bearing.charAt(0);
+            lines.add("OBSTACLE," + col + "," + row + "," + facing);
         }
         return lines;
     }

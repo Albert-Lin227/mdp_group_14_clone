@@ -455,32 +455,24 @@ public class Home extends Fragment {
                 }
                 gridMap.setRobotBottomLeftCell(sentX, sentY, direction);
             }
-            //image format from RPI is "TARGET~<obID>~<ImValue>" eg TARGET~3~7
+            // TARGET,<obstacle number>,<target ID> from the RPi.
             else if(message.startsWith("TARGET,")) {
                 try {
                     String[] cmd = message.split(",", -1);
                     if (cmd.length != 3) throw new IllegalArgumentException("Malformed TARGET line");
                     int obstacleNumber = Integer.parseInt(cmd[1].trim());
-                    BluetoothCommunications.updateMessageLog(context, "Obstacle no: " + obstacleNumber + " TARGET ID: " + cmd[2].trim());
-
-//                    if (cmd[2].contains("STOP"))
-//                    {
-//                        String temp=cmd[2];
-//                        String[] temp1=temp.split(" ");
-//                        temp2=temp1[0];
-//
-//                    }
-
-                    gridMap.updateIDFromRpi(String.valueOf(obstacleNumber - 1), cmd[2].trim());
-                    obstacleID = String.valueOf(obstacleNumber - 1);
-
-
-//                    int ob= Integer.parseInt(obstacleID);
+                    String targetId = cmd[2].trim();
+                    if (obstacleNumber < 1 || targetId.isEmpty()) {
+                        throw new IllegalArgumentException("Invalid TARGET values");
+                    }
+                    if (gridMap.updateIDFromRpi(String.valueOf(obstacleNumber - 1), targetId)) {
+                        BluetoothCommunications.updateMessageLog(context, "Obstacle no: " + obstacleNumber + " TARGET ID: " + targetId);
+                        obstacleID = String.valueOf(obstacleNumber - 1);
+                    }
 
                 }
-                catch(Exception e)
-                {
-                    e.printStackTrace();
+                catch (IllegalArgumentException e) {
+                    showLog("Malformed TARGET line: " + message);
                 }
             }
             else if(message.startsWith("ARROW,")){

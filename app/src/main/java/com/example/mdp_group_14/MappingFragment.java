@@ -139,7 +139,7 @@ public class MappingFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 showLog("Clicked resetMapBtn");
-                showToast("Reseting map...");
+                showToast("Resetting map...");
                 Home.printMessage("CLEAR");
                 gridMap.resetMap();
 
