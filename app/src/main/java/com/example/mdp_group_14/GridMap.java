@@ -2027,8 +2027,9 @@ public class GridMap extends View {
 
     }
 
-    // bluetooth_bridge_node.cpp / task1_runner.py protocol: one "OBSTACLE,<x>,<y>,<facing>"
-    // line per obstacle, using zero-based grid cells and a single N/S/E/W facing letter.
+    // bluetooth_bridge_node.cpp / task1_runner.py protocol: one
+    // "OBSTACLE,<obstacle number>,<x>,<y>,<facing>" line per obstacle.
+    // The obstacle number is 1-based; x and y are zero-based grid cells.
     public List<String> getObstacleLines() {
         List<String> lines = new ArrayList<>();
         for (int i = 0; i < obstacleCoord.size(); i++) {
@@ -2036,7 +2037,7 @@ public class GridMap extends View {
             int row = obstacleCoord.get(i)[1];
             String bearing = imageBearings.get(row)[col];
             char facing = bearing == null || bearing.isEmpty() ? '-' : bearing.charAt(0);
-            lines.add("OBSTACLE," + col + "," + row + "," + facing);
+            lines.add("OBSTACLE," + (i+1) + "," + col + "," + row + "," + facing);
         }
         return lines;
     }
@@ -2068,11 +2069,17 @@ public class GridMap extends View {
         return msg;
     }
 
-    // Updating the obstacle image id (sent over by RPi)
-    public boolean updateIDFromRpi(String obstacleID, String imageID) {
+    // Updating the obstacle image id (sent over by RPi). The wire obstacle number is 1-based.
+    public boolean updateIDFromRpi(int obstacleNumber, String imageID) {
         showLog("updateIDFromRpi");
-        int x = obstacleCoord.get(Integer.parseInt(obstacleID))[0];
-        int y = obstacleCoord.get(Integer.parseInt(obstacleID))[1];
+        int obstacleIndex = obstacleNumber - 1;
+        if (obstacleIndex < 0 || obstacleIndex >= obstacleCoord.size()) {
+            showLog("Ignoring TARGET for unknown obstacle number: " + obstacleNumber);
+            return false;
+        }
+
+        int x = obstacleCoord.get(obstacleIndex)[0];
+        int y = obstacleCoord.get(obstacleIndex)[1];
         ITEM_LIST.get(y)[x] = (imageID.equals("-1")) ? "NA" : imageID;
         this.invalidate();
         return true;

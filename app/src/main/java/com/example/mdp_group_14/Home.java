@@ -380,7 +380,7 @@ public class Home extends Fragment {
 
     // Message handler (Receiving)
     // RPi relays the EXACT SAME stm commands sent by algo back to android: Starts with "Algo|"
-    // RPi sends the image id as "TARGET~<obID>~<ImValue>"
+    // RPi sends the image id as "TARGET,<obstacle number>,<target ID>"
     // Other specific strings are to clear checklist
     BroadcastReceiver messageReceiver = new BroadcastReceiver() {
         @Override
@@ -465,7 +465,7 @@ public class Home extends Fragment {
                     if (obstacleNumber < 1 || targetId.isEmpty()) {
                         throw new IllegalArgumentException("Invalid TARGET values");
                     }
-                    if (gridMap.updateIDFromRpi(String.valueOf(obstacleNumber - 1), targetId)) {
+                    if (gridMap.updateIDFromRpi(obstacleNumber, targetId)) {
                         BluetoothCommunications.updateMessageLog(context, "Obstacle no: " + obstacleNumber + " TARGET ID: " + targetId);
                         obstacleID = String.valueOf(obstacleNumber - 1);
                     }
