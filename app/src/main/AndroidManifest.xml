@@ -29,7 +29,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.example.mdp_group_14.BluetoothSetUp"/>
+        <activity android:name="com.example.mdp_group_14.BluetoothSetUpActivity"/>
     </application>
 
 </manifest>

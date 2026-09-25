@@ -33,6 +33,7 @@ import androidx.annotation.RequiresPermission;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.viewpager.widget.ViewPager;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -143,7 +144,12 @@ public class BluetoothSetUp extends Fragment {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         Switch bluetoothSwitch = root.findViewById(R.id.bluetoothSwitch);
-        if(mBluetoothAdapter.isEnabled()){
+        if (mBluetoothAdapter == null) {
+            updateStatus("Error: Bluetooth is not supported on this device");
+            bluetoothSwitch.setEnabled(false);
+            btnSearch.setEnabled(false);
+            connectBtn.setEnabled(false);
+        } else if (hasBluetoothPermissions() && mBluetoothAdapter.isEnabled()){
             bluetoothSwitch.setChecked(true);
             bluetoothSwitch.setText("ON");
         }
@@ -279,10 +285,12 @@ public class BluetoothSetUp extends Fragment {
                 editor = sharedPreferences.edit();
                 editor.putString("connStatus", connStatusTextView.getText().toString());
                 editor.commit();
-                TextView status = Home.getBluetoothStatus();
-                String s = connStatusTextView.getText().toString();
-                //status.setText(s);
-                getActivity().finish();
+                if (requireActivity() instanceof MainActivity) {
+                    ViewPager viewPager = requireActivity().findViewById(R.id.view_pager2);
+                    viewPager.setCurrentItem(0, false);
+                } else {
+                    requireActivity().finish();
+                }
             }
         });
 
@@ -327,29 +335,46 @@ public class BluetoothSetUp extends Fragment {
 //        }
 //    }
 
-                             private void checkBTPermissions(){
-        int permission1 = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        int permission2 = ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.BLUETOOTH_SCAN);
-        if (permission1 != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
-            ActivityCompat.requestPermissions(
-                    getActivity(),
-                    PERMISSIONS_STORAGE,
-                    1
-            );
-        } else if (permission2 != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(
-                    getActivity(),
-                    PERMISSIONS_LOCATION,
-                    1
-            );
-        }
+                            private boolean hasBluetoothPermissions() {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                    return ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_SCAN)
+                                            == PackageManager.PERMISSION_GRANTED
+                                            && ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT)
+                                            == PackageManager.PERMISSION_GRANTED;
+                                }
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    return ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                                            == PackageManager.PERMISSION_GRANTED;
+                                }
+                                return true;
+                            }
+
+                            private void checkBTPermissions(){
+                                if (hasBluetoothPermissions()) {
+                                    return;
+                                }
+                                String[] permissions = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                                        ? new String[]{Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT}
+                                        : new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
+                                requestPermissions(permissions, 1);
     }
+
+                            @Override
+                            public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                                                   @NonNull int[] grantResults) {
+                                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                                if (requestCode == 1 && hasBluetoothPermissions()) {
+                                    Scanning();
+                                }
+                            }
 
     @RequiresPermission(allOf = {Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT})
     public void Scanning() {
         Log.d(TAG, "toggleButton: Scanning for unpaired devices.");
         checkBTPermissions();
+        if (!hasBluetoothPermissions() || mBluetoothAdapter == null) {
+            return;
+        }
         mNewBTDevices.clear();
         if (mBluetoothAdapter != null) {
             if (!mBluetoothAdapter.isEnabled()) {

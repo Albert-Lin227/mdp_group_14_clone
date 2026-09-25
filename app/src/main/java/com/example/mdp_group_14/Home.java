@@ -135,7 +135,7 @@ public class Home extends Fragment {
                 ViewPager viewPager = getActivity().findViewById(R.id.view_pager2);
                 viewPager.setCurrentItem(1);
 
-                Intent popup = new Intent(getContext(), BluetoothSetUp.class);
+                Intent popup = new Intent(getContext(), BluetoothSetUpActivity.class);
                 startActivity(popup);
 
             }

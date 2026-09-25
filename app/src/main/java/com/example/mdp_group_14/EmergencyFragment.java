@@ -19,6 +19,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+import androidx.viewpager.widget.ViewPager;
 
 // NOTE: THIS HAS BEEN REMOVED - NOT IN USE IN FINAL APP
 // This was made for redundancy - in case an obstacle can't be placed properly, this is a slightly faster way to get the right syntax to manually send to RPi
@@ -124,7 +125,7 @@ public class EmergencyFragment extends DialogFragment {
 
                 if (isObstacle)
                 {
-                    gridMap.imageBearings.get(row)[col] = dir;
+                    GridMap.imageBearings.get(row)[col] = dir;
                     gridMap.setObstacleCoord(col+1, row+1);
                 }
 
@@ -132,7 +133,7 @@ public class EmergencyFragment extends DialogFragment {
 //                    gridMap.setRobotDirection("up");
 //                    gridMap.updateRobotAxis(col, row, "up");
 //                    BluetoothCommunications.getMessageReceivedTextView().append(Integer.toString(col)+Integer.toString(row)+obstDir);
-                    gridMap.canDrawRobot = true;
+                    GridMap.canDrawRobot = true;
                     gridMap.setStartCoordStatus(true);
                     gridMap.setStartCoord(col+1,row+1);
                     gridMap.updateRobotAxis(col+1, row+1, obstDir);
@@ -162,7 +163,8 @@ public class EmergencyFragment extends DialogFragment {
             public void onClick(View view) {
                 showLog("Clicked cancelDirectionBtn");
                 showLog("Exiting cancelDirectionBtn");
-                getDialog().dismiss();
+                ViewPager viewPager = requireActivity().findViewById(R.id.view_pager2);
+                viewPager.setCurrentItem(0, false);
             }
         });
 
