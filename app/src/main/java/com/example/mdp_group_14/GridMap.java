@@ -2070,6 +2070,9 @@ public class GridMap extends View {
     }
 
     // Updating the obstacle image id (sent over by RPi). The wire obstacle number is 1-based.
+    
+
+    /*/
     public boolean updateIDFromRpi(int obstacleNumber, String imageID) {
         showLog("updateIDFromRpi");
         int obstacleIndex = obstacleNumber - 1;
@@ -2084,6 +2087,40 @@ public class GridMap extends View {
         this.invalidate();
         return true;
     }
+
+*/
+
+    public boolean updateIDFromRpi(int obstacleNumber, String imageID) {
+    int targetId;
+
+    try {
+        targetId = Integer.parseInt(imageID);
+    } catch (NumberFormatException e) {
+        return false;
+    }
+
+    if (targetId < 11 || targetId > 40) {
+        showLog("Ignoring invalid TARGET ID: " + imageID);
+        return false;
+    }
+
+    int obstacleIndex = obstacleNumber - 1;
+    if (obstacleIndex < 0 || obstacleIndex >= obstacleCoord.size()) {
+        return false;
+    }
+
+    int x = obstacleCoord.get(obstacleIndex)[0];
+    int y = obstacleCoord.get(obstacleIndex)[1];
+
+    ITEM_LIST.get(y)[x] = imageID;
+    invalidate();
+    return true;
+}
+
+
+
+
+
     private void updateStatus(String message) {
         Toast toast = Toast.makeText(getContext(), message, Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.TOP,0, 0);
